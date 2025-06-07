@@ -1,15 +1,3 @@
-// MoST
-$(function(){
-   $.get("./abs/MoST.txt", function(data) {
-      $("#mostabs").html(data);
-   });
-});
-
-$(function(){
-   $.get("./bib/MoST.txt", function(data) {
-      $("#mostbib").html(data);
-   });
-});
 
 // Fancy123
 $(function(){
@@ -21,6 +9,32 @@ $(function(){
 $(function(){
    $.get("./bib/Fancy123.txt", function(data) {
       $("#fancy123bib").html(data);
+   });
+});
+
+// JIMR
+$(function(){
+   $.get("./abs/JIMR.txt", function(data) {
+      $("#jimrabs").html(data);
+   });
+});
+
+$(function(){
+   $.get("./bib/JIMR.txt", function(data) {
+      $("#jimrbib").html(data);
+   });
+});
+
+// PointDreamer
+$(function(){
+   $.get("./abs/PointDreamer.txt", function(data) {
+      $("#pointdreamerabs").html(data);
+   });
+});
+
+$(function(){
+   $.get("./bib/PointDreamer.txt", function(data) {
+      $("#pointdreamerbib").html(data);
    });
 });
 
@@ -76,58 +90,6 @@ $(function(){
    });
 });
 
-// patchDPCC
-$(function(){
-   $.get("./abs/patchDPCC.txt", function(data) {
-      $("#patchdpccabs").html(data);
-   });
-});
-
-$(function(){
-   $.get("./bib/patchDPCC.txt", function(data) {
-      $("#patchdpccbib").html(data);
-   });
-});
-
-// DIF
-$(function(){
-    $.get("./abs/dif.txt", function(data) {
-       $("#difabs").html(data);
-    });
- });
- 
- $(function(){
-    $.get("./bib/dif.txt", function(data) {
-       $("#difbib").html(data);
-    });
- });
- 
- // CAR
- $(function(){
-    $.get("./abs/car.txt", function(data) {
-       $("#carabs").html(data);
-    });
- });
- 
- $(function(){
-    $.get("./bib/car.txt", function(data) {
-       $("#carbib").html(data);
-    });
- });
- 
- // ECON
- $(function(){
-    $.get("./abs/econ.txt", function(data) {
-       $("#econabs").html(data);
-    });
- });
- 
- $(function(){
-    $.get("./bib/econ.txt", function(data) {
-       $("#econbib").html(data);
-    });
- });
- 
  // ICON
  $(function(){
     $.get("./abs/icon.txt", function(data) {

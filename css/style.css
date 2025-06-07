@@ -93,8 +93,19 @@
     height: 120px;
     width: 180px;
     padding: 8px;
-    /* outline: 1px solid gray; */
+
   }
+
+
+  /* td.pub_td1 img {
+      max-width: 100%;         
+      max-height: 100%;        
+      width: auto;             
+      height: auto;            
+      object-fit: contain;     
+      display: block;          
+      margin: auto;            
+  } */
 
   .box {
     display: inline-block;

@@ -1,0 +1,1 @@
+We propose PointDreamer, a zero-shot framework to reconstruct a textured mesh from a colored point cloud leveraging 2D diffusion prior. The key idea is to inpaint the projected sparse multiview images into dense ones, then unproject them back to 3D space. Specially, we propose a novel NBF unprojection strategy to avoid border-area artifacts.
