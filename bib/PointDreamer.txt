@@ -1,6 +1,10 @@
-@article{yu2024pointdreamer,
-  title={PointDreamer: Zero-shot 3D Textured Mesh Reconstruction from Colored Point Cloud by 2D Inpainting},
-  author={Yu, Qiao and Li, Xianzhi and Tang, Yuan and Xu, Jinfeng and Hu, Long and Hao, Yixue and Chen, Min},
-  journal={arXiv preprint arXiv:2406.15811},
-  year={2024}
-}
+@ARTICLE{PointDreamer,
+  author={Yu, Qiao and Li, Xianzhi and Tang, Yuan and Han, Xu and Xu, Jinfeng and Hu, Long and Chen, Min},
+  journal={IEEE Transactions on Visualization and Computer Graphics}, 
+  title={PointDreamer: Zero-Shot 3D Textured Mesh Reconstruction From Colored Point Cloud}, 
+  year={2025},
+  volume={},
+  number={},
+  pages={1-12},
+  keywords={Three-dimensional displays;Image reconstruction;Point cloud compression;Image color analysis;Diffusion models;Geometry;Pipelines;Training;Training data;Electronic mail;2D diffusion;image inpainting;point cloud reconstruction;texture mapping},
+  doi={10.1109/TVCG.2025.3595987}}
