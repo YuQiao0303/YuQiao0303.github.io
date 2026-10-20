@@ -30,11 +30,58 @@ button:disabled{opacity:.5;cursor:not-allowed}.filelabel input{display:none}
 @media(max-width:1050px){.work{grid-template-columns:minmax(250px,1fr) minmax(280px,1.2fr)}.settings{grid-column:1/-1;height:420px;border-top:1px solid #394153}.panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px;align-content:start}.panel .sep{grid-column:1/-1}}
 @media(max-width:680px){.top{padding:0 12px}.top small{display:none}.work{height:auto;display:flex;flex-direction:column}.pane{height:380px}.settings{height:auto}.panel{display:block}.top h1{font-size:14px}}
 </style>
+
+<style id="mobile-viewer-styles">
+.mobile-tabs,.viewer-nav{display:none}
+.preview-pane.is-fullscreen{position:fixed!important;inset:0;z-index:1000;display:flex!important;flex-direction:column;width:100%;height:100dvh;min-height:0;background:#181e2a;border:0}
+.preview-pane.is-fullscreen:fullscreen{width:100%;height:100%}
+.preview-pane.is-fullscreen .pane-head{flex-shrink:0;min-height:54px;background:#1c2330}
+.preview-pane.is-fullscreen .preview{flex:1;min-height:0;background:#14171d}
+.preview-pane.is-fullscreen .viewer-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:62px;padding:8px 18px calc(8px + env(safe-area-inset-bottom));background:#1c2330;color:#dce5f5}
+.viewer-nav span{font-size:13px;font-variant-numeric:tabular-nums}
+.viewer-nav button{padding:9px 16px;min-width:76px}
+#viewer-close{display:none}
+.preview-pane.is-fullscreen #viewer-close{display:inline-flex}
+.preview-pane.is-fullscreen #fullscreen-btn,.preview-pane.is-fullscreen .zoom-controls{display:none}
+.preview-pane.is-fullscreen #pagecount{display:none}
+body.viewer-open{overflow:hidden}
+@media(max-width:680px){
+ .top{height:52px;min-height:52px;gap:8px;padding:0 12px}
+ .top h1{font-size:14px;flex-shrink:0}
+ .top a{max-width:190px;font-size:10px;line-height:1.3;text-align:right;white-space:normal}
+ .work{height:calc(100dvh - 52px - 62px - env(safe-area-inset-bottom));min-height:0;display:flex;flex-direction:column}
+ .work>.pane{height:100%;min-height:0;flex:1;display:flex;flex-direction:column;border-right:0;border-top:0}
+ .work>.pane:not(.mobile-active){display:none}
+ .work>.settings{height:100%}
+ .work>.settings .panel{display:block;flex:1;height:100%;min-height:0;overflow-y:auto;padding-bottom:100px}
+ .pane-head{padding:8px 10px;gap:7px;min-height:50px}
+ .pane-head span{min-width:0}
+ .pane-head .toolbar{gap:5px}
+ #status{display:none}
+ #zoom-label{font-size:11px}
+ #zoom-out,#zoom-in{padding:6px 8px}
+ #fullscreen-btn{font-weight:650}
+ #editor{padding:13px 14px 60px;font-size:14px}
+ .mobile-tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;gap:5px;height:calc(62px + env(safe-area-inset-bottom));padding:5px 8px calc(5px + env(safe-area-inset-bottom));background:#1a2230;border-top:1px solid #46536c}
+ .mobile-tabs button{flex:1;min-width:0;background:transparent;border:0;padding:6px 4px;color:#b7c6dd;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px}
+ .mobile-tabs button.active{color:#fff;background:#354c75;font-weight:700}
+ body.viewer-open .mobile-tabs{display:none}
+ .preview-pane.is-fullscreen .pane-head{padding:10px 12px}
+ .preview-pane.is-fullscreen .viewer-nav{min-height:64px}
+ .preview-pane.is-fullscreen #viewer-close{padding:7px 11px}
+ #toast{bottom:calc(80px + env(safe-area-inset-bottom));width:max-content}
+}
+@media(max-width:375px){
+ .top a{max-width:145px;font-size:9px}
+ .pane-head .sub{font-size:10px}
+ #zoom-label{display:none}
+}
+</style>
 </head>
 <body>
 <header class="top"><h1>Markdown → 小红书 <small>自定义分页 · 表格列宽 · KaTeX 公式</small></h1><a href="https://github.com/yytdfc/md2rednote" target="_blank" rel="noopener" title="独立实现，参考开源项目 md2rednote（作者 yytdfc）">由ChatGPT独立实现 · 参考开源项目 md2rednote（作者 yytdfc）</a></header>
 <div class="work">
-<section class="pane">
+<section class="pane" data-pane="editor">
 <div class="pane-head"><span>Markdown 编辑器</span><div class="toolbar"><label class="filelabel">导入 .md<input type="file" id="import-md" accept=".md,.markdown,.txt"></label><button id="reset-example">示例</button></div></div>
 <textarea id="editor" spellcheck="false" aria-label="Markdown 编辑器"># Markdown 转小红书
 
@@ -83,9 +130,14 @@ $$
 
 上面的横线会强制从新的一张图片开始；前一页剩下的部分会自动补白。</textarea>
 </section>
-<section class="pane"><div class="pane-head"><span>分页预览 <span class="sub" id="pagecount">—</span></span><div class="toolbar"><button id="zoom-out">−</button><span class="sub" id="zoom-label">80%</span><button id="zoom-in">+</button><span id="status">载入中</span></div></div>
-<div class="preview"><iframe title="图片分页预览" id="frame"></iframe></div></section>
-<aside class="pane settings"><div class="pane-head">导出与排版配置</div><div class="panel">
+<section class="pane preview-pane mobile-active" id="preview-pane" data-pane="preview">
+<div class="pane-head"><span>分页预览 <span class="sub" id="pagecount">—</span></span>
+<div class="toolbar"><span class="zoom-controls"><button id="zoom-out" title="缩小预览" aria-label="缩小预览">−</button> <span class="sub" id="zoom-label">80%</span> <button id="zoom-in" title="放大预览" aria-label="放大预览">+</button></span>
+<button id="fullscreen-btn" title="一页一张全屏查看" aria-label="全屏查看分页图片">⛶ 全屏</button><button id="viewer-close" aria-label="退出全屏">✕ 退出</button><span id="status">载入中</span></div></div>
+<div class="preview"><iframe title="图片分页预览" id="frame"></iframe></div>
+<div class="viewer-nav" aria-label="分页图片浏览控制"><button id="viewer-prev" aria-label="上一张图片">← 上一张</button><span id="viewer-page-label" aria-live="polite">1 / 1</span><button id="viewer-next" aria-label="下一张图片">下一张 →</button></div>
+</section>
+<aside class="pane settings" data-pane="settings"><div class="pane-head">导出与排版配置</div><div class="panel">
 <div>
 <h3>页面尺寸</h3>
 <div class="config-line"><div class="field"><label for="pageWidth">宽度 px</label><input id="pageWidth" type="number" min="300" max="800" step="10"></div><div class="field"><label for="pageHeight">高度 px</label><input id="pageHeight" type="number" min="400" max="1000" step="10"></div><div class="field"><label for="pageMargin">边距 px</label><input id="pageMargin" type="number" min="10" max="90" step="5"></div></div>
@@ -123,6 +175,11 @@ $$
 </div>
 </div></aside>
 </div>
+<nav class="mobile-tabs" aria-label="手机端内容切换">
+<button type="button" data-target="editor">✎ Markdown</button>
+<button type="button" data-target="preview" class="active" aria-current="page">▣ 分页预览</button>
+<button type="button" data-target="settings">⚙ 设置</button>
+</nav>
 <div id="toast" role="status"></div>
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
@@ -150,6 +207,7 @@ const DEFAULT={
  exportScale:2,exportFormat:'png'
 };
 let cfg={...DEFAULT},tableWidths={},markdown='',zoom=80,renderSerial=0,timer=null,rendering=false,exporting=false,renderedTables=0;
+let viewerOpen=false, viewerIndex=0, activeTab='preview';
 const $=(id)=>document.getElementById(id);
 try {
  const saved=JSON.parse(localStorage.getItem(STORE)||'null');
@@ -293,6 +351,10 @@ function makeDoc(bodyHtml,serial){
  '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">'+
  '<style>'+cssForPages()+'</style>'+
  '<style>.pagedjs_page{background:'+th.bg+'!important}.pagedjs_pagebox{background:'+th.bg+'}html{background:#313641}</style>'+
+ '<style id="viewer-page-style">body.viewer-mode{margin:0!important;padding:0!important;background:#14171d!important;overflow:hidden!important}'+
+ 'body.viewer-mode .pagedjs_pages{display:block!important;position:relative!important;width:100vw!important;height:100vh!important;margin:0!important;padding:0!important;gap:0!important;overflow:hidden!important;zoom:1!important}'+
+ 'body.viewer-mode .pagedjs_page{display:none!important;position:absolute!important;top:50%!important;left:50%!important;margin:0!important;transform:translate(-50%,-50%) scale(var(--viewer-scale,1))!important;transform-origin:center center!important;box-shadow:0 6px 28px #0008!important}'+
+ 'body.viewer-mode .pagedjs_page.viewer-active{display:block!important}</style>'+
  '<script>window.PagedConfig={auto:false};<\/script>'+
  '<script src="https://cdn.jsdelivr.net/npm/pagedjs@0.4.3/dist/paged.polyfill.js"><\/script>'+
  '</head><body><div id="source">'+bodyHtml+'</div>'+
@@ -362,13 +424,127 @@ function attachDrags(){
   }
  });
 }
+
+function isMobile(){return window.matchMedia('(max-width: 680px)').matches}
+function switchTab(name){
+ if(!['editor','preview','settings'].includes(name))return;
+ activeTab=name;
+ document.querySelectorAll('.work>[data-pane]').forEach(pane=>pane.classList.toggle('mobile-active',pane.dataset.pane===name));
+ document.querySelectorAll('.mobile-tabs [data-target]').forEach(button=>{
+  const selected=button.dataset.target===name;button.classList.toggle('active',selected);
+  if(selected)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
+ });
+ if(name==='preview')requestAnimationFrame(applyZoom);
+}
+function getPages(){
+ const doc=$('frame').contentDocument;return doc?[...doc.querySelectorAll('.pagedjs_page')]:[];
+}
+function fitViewer(){
+ if(!viewerOpen)return;
+ const frame=$('frame'),doc=frame.contentDocument;
+ if(!doc)return;
+ const wrapper=doc.querySelector('.pagedjs_pages');if(!wrapper)return;
+ const w=Math.max(1,frame.clientWidth-20),h=Math.max(1,frame.clientHeight-20);
+ const scale=Math.min(3,w/Math.max(1,cfg.pageWidth),h/Math.max(1,cfg.pageHeight));
+ wrapper.style.setProperty('--viewer-scale',String(Math.max(.1,scale)));
+}
+function updateViewer(){
+ const doc=$('frame').contentDocument;if(!doc)return;
+ const pages=getPages();
+ viewerIndex=Math.max(0,Math.min(viewerIndex,Math.max(0,pages.length-1)));
+ doc.body.classList.toggle('viewer-mode',viewerOpen);
+ pages.forEach((page,i)=>page.classList.toggle('viewer-active',viewerOpen&&i===viewerIndex));
+ $('viewer-page-label').textContent=pages.length?(viewerIndex+1)+' / '+pages.length:'0 / 0';
+ $('viewer-prev').disabled=!pages.length||viewerIndex===0;
+ $('viewer-next').disabled=!pages.length||viewerIndex===pages.length-1;
+ if(viewerOpen)requestAnimationFrame(fitViewer);
+}
+function enterViewer(index){
+ if(rendering||!getPages().length){msg('请先完成分页渲染');return}
+ if(viewerOpen)return;
+ if(Number.isInteger(index))viewerIndex=index;else viewerIndex=0;
+ viewerOpen=true;
+ $('preview-pane').classList.add('is-fullscreen');
+ document.body.classList.add('viewer-open');
+ updateViewer();
+ const pane=$('preview-pane');
+ if(pane.requestFullscreen){try{const p=pane.requestFullscreen();if(p&&p.catch)p.catch(()=>{})}catch(e){/* CSS full-screen fallback */}}
+}
+function leaveViewer(){
+ if(!viewerOpen)return;
+ viewerOpen=false;
+ $('preview-pane').classList.remove('is-fullscreen');
+ document.body.classList.remove('viewer-open');
+ updateViewer();
+ requestAnimationFrame(applyZoom);
+ if(document.fullscreenElement===$('preview-pane')&&document.exitFullscreen){
+  const p=document.exitFullscreen();if(p&&p.catch)p.catch(()=>{});
+ }
+}
+function navigateViewer(delta){
+ if(!viewerOpen)return;
+ viewerIndex=Math.max(0,Math.min(getPages().length-1,viewerIndex+delta));
+ updateViewer();
+}
+function attachViewerGestures(){
+ const doc=$('frame').contentDocument;if(!doc)return;
+ let touchStart=null;
+ doc.addEventListener('touchstart',e=>{
+  if(!viewerOpen||e.touches.length!==1)return;
+  touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY};
+ },{passive:true});
+ doc.addEventListener('touchend',e=>{
+  if(!viewerOpen||!touchStart||!e.changedTouches.length)return;
+  const dx=e.changedTouches[0].clientX-touchStart.x,dy=e.changedTouches[0].clientY-touchStart.y;
+  touchStart=null;
+  if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.3)navigateViewer(dx<0?1:-1);
+ },{passive:true});
+ doc.addEventListener('keydown',e=>{
+  if(!viewerOpen)return;
+  if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();navigateViewer(e.key==='ArrowRight'?1:-1)}
+  if(e.key==='Escape'){e.preventDefault();leaveViewer()}
+ });
+ doc.addEventListener('click',e=>{
+  if(viewerOpen||!isMobile()||e.target.closest('.col-grip,a,button'))return;
+  const page=e.target.closest('.pagedjs_page');
+  if(page){const index=getPages().indexOf(page);if(index>=0)enterViewer(index)}
+ });
+ doc.addEventListener('dblclick',e=>{
+  if(viewerOpen||isMobile())return;
+  const page=e.target.closest('.pagedjs_page');
+  if(page){const index=getPages().indexOf(page);if(index>=0)enterViewer(index)}
+ });
+}
+$('fullscreen-btn').addEventListener('click',()=>enterViewer(0));
+$('viewer-close').addEventListener('click',leaveViewer);
+$('viewer-prev').addEventListener('click',()=>navigateViewer(-1));
+$('viewer-next').addEventListener('click',()=>navigateViewer(1));
+document.querySelectorAll('.mobile-tabs [data-target]').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.target)));
+document.addEventListener('fullscreenchange',()=>{
+ if(viewerOpen&&!document.fullscreenElement)leaveViewer();
+ else if(viewerOpen)requestAnimationFrame(fitViewer);
+});
+document.addEventListener('keydown',e=>{
+ if(!viewerOpen)return;
+ if(e.key==='Escape'){e.preventDefault();leaveViewer()}
+ if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();navigateViewer(e.key==='ArrowRight'?1:-1)}
+});
+window.addEventListener('resize',()=>{if(viewerOpen)fitViewer();else applyZoom()});
+
 function scheduleRender(){
  if(timer)clearTimeout(timer);
  msg('排版中…');timer=setTimeout(render,450);
 }
 function applyZoom(){
- const doc=$('frame').contentDocument;
- if(doc){const pages=doc.querySelector('.pagedjs_pages');if(pages)pages.style.zoom=String(zoom/100)}
+ const frame=$('frame'),doc=frame.contentDocument;
+ if(viewerOpen){fitViewer();return}
+ if(doc){
+  const pages=doc.querySelector('.pagedjs_pages');
+  if(pages){
+   const fit=isMobile()?Math.max(.18,(frame.clientWidth-30)/Math.max(1,cfg.pageWidth)):zoom/100;
+   pages.style.zoom=String(Math.min(zoom/100,fit));
+  }
+ }
  $('zoom-label').textContent=zoom+'%';
 }
 function render(){
@@ -382,7 +558,7 @@ function render(){
 }
 window.addEventListener('message',function(e){
  if(e.source!==$('frame').contentWindow||!e.data||e.data.source!=='rednote-pages'||e.data.serial!==renderSerial)return;
- if(e.data.kind==='ready'){rendering=false;applyZoom();attachDrags();$('pagecount').textContent='共 '+e.data.count+' 页';msg('已就绪')}
+ if(e.data.kind==='ready'){rendering=false;applyZoom();attachDrags();attachViewerGestures();if(viewerOpen)updateViewer();$('pagecount').textContent='共 '+e.data.count+' 页';msg('已就绪')}
  if(e.data.kind==='error'){rendering=false;msg('分页失败');console.error(e.data.info)}
 });
 Object.keys(DEFAULT).forEach(k=>{
@@ -433,7 +609,7 @@ async function exportPages(){
  function finish(){if(pageWrapper)pageWrapper.style.zoom=oldZoom;exporting=false;$('export').disabled=false;if($('status').textContent.startsWith('导出'))msg('已就绪')}
 }
 $('export').addEventListener('click',exportPages);
-setFields();save();render();
+setFields();switchTab('preview');save();render();
 })();
 </script>
 </body></html>
