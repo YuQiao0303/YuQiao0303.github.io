@@ -30,6 +30,22 @@ button:disabled{opacity:.5;cursor:not-allowed}.filelabel input{display:none}
 @media(max-width:1050px){.work{grid-template-columns:minmax(250px,1fr) minmax(280px,1.2fr)}.settings{grid-column:1/-1;height:420px;border-top:1px solid #394153}.panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px;align-content:start}.panel .sep{grid-column:1/-1}}
 @media(max-width:680px){.top{padding:0 12px}.top small{display:none}.work{height:auto;display:flex;flex-direction:column}.pane{height:380px}.settings{height:auto}.panel{display:block}.top h1{font-size:14px}}
 </style>
+<style id="render-status-styles">
+.render-progress{position:absolute;z-index:20;left:12px;top:12px;width:min(420px,calc(100% - 24px));padding:12px 13px;background:rgba(22,30,45,.96);border:1px solid #576b8c;border-radius:11px;box-shadow:0 6px 22px #0006;color:#f2f5fd;pointer-events:none}
+.render-progress[hidden],.render-metrics[hidden]{display:none!important}
+.render-progress-heading{display:flex;flex-direction:column;gap:4px;margin-bottom:11px}
+.render-progress-heading strong{font-size:13px;font-weight:680}
+.render-progress-heading span{font-size:11px;color:#b6c6e1;line-height:1.35}
+.render-progress-track{height:5px;border-radius:10px;background:#374560;overflow:hidden}
+.render-progress-fill{height:100%;width:38%;border-radius:10px;background:linear-gradient(90deg,#6593f5,#a1bdff);animation:progress-sweep 1.35s ease-in-out infinite}
+.render-progress[data-mode="determinate"] .render-progress-fill{animation:none;transition:width .16s linear}
+.render-progress[data-mode="error"]{border-color:#ab5c5c}
+.render-progress[data-mode="error"] .render-progress-fill{animation:none;width:100%;background:#b65f5f}
+.render-metrics{position:absolute;z-index:4;left:10px;bottom:9px;max-width:calc(100% - 20px);padding:5px 9px;background:rgba(24,31,45,.82);border-radius:6px;color:#d5e3fa;font-size:10px;line-height:1.35;pointer-events:none}
+.preview-pane.is-fullscreen .render-metrics{display:none}
+@keyframes progress-sweep{0%{transform:translateX(-110%)}50%{transform:translateX(110%)}100%{transform:translateX(275%)}}
+@media(prefers-reduced-motion:reduce){.render-progress-fill{animation:none!important}}
+</style>
 
 <style id="mobile-viewer-styles">
 .mobile-tabs,.viewer-nav{display:none}
@@ -134,7 +150,14 @@ $$
 <div class="pane-head"><span>分页预览 <span class="sub" id="pagecount">—</span></span>
 <div class="toolbar"><span class="zoom-controls"><button id="zoom-out" title="缩小预览" aria-label="缩小预览">−</button> <span class="sub" id="zoom-label">80%</span> <button id="zoom-in" title="放大预览" aria-label="放大预览">+</button></span>
 <button id="fullscreen-btn" title="一页一张全屏查看" aria-label="全屏查看分页图片">⛶ 全屏</button><button id="viewer-close" aria-label="退出全屏">✕ 退出</button><span id="status">载入中</span></div></div>
-<div class="preview"><iframe title="图片分页预览" id="frame"></iframe></div>
+<div class="preview">
+<iframe title="图片分页预览" id="frame"></iframe>
+<div class="render-progress" id="render-progress" role="status" aria-live="polite" hidden>
+  <div class="render-progress-heading"><strong id="render-stage">正在准备</strong><span id="render-detail">—</span></div>
+  <div class="render-progress-track" aria-label="排版进度"><div id="render-progress-fill" class="render-progress-fill"></div></div>
+</div>
+<div id="render-metrics" class="render-metrics" title="实际耗时统计" hidden></div>
+</div>
 <div class="viewer-nav" aria-label="分页图片浏览控制"><button id="viewer-prev" aria-label="上一张图片">← 上一张</button><span id="viewer-page-label" aria-live="polite">1 / 1</span><button id="viewer-next" aria-label="下一张图片">下一张 →</button></div>
 </section>
 <aside class="pane settings" data-pane="settings"><div class="pane-head">导出与排版配置</div><div class="panel">
@@ -201,28 +224,53 @@ const THEMES={
  lavender:{bg:'#faf5ff',text:'#483363',accent:'#8a52c5',code:'#eee3fa'}
 };
 const DEFAULT={
- pageWidth:540,pageHeight:720,pageMargin:35,fontSize:18,lineHeight:1.65,
+ pageWidth:450,pageHeight:750,pageMargin:30,fontSize:17,lineHeight:1.65,
  theme:'light',accentColor:'#c54539',cover:true,pageNumber:true,pageLines:false,
  mathDollarInline:true,mathDollarBlock:true,mathBackslashInline:true,mathBackslashBlock:true,mathCopyFix:true,
  exportScale:2,exportFormat:'png'
 };
 let cfg={...DEFAULT},tableWidths={},markdown='',zoom=80,renderSerial=0,timer=null,rendering=false,exporting=false,renderedTables=0;
 let viewerOpen=false, viewerIndex=0, activeTab='preview';
+let parsedCacheKey=null,parsedCacheValue='';
+let renderStartedAt=0,lastParseMs=0,progressHideTimer=null;
 const $=(id)=>document.getElementById(id);
 try {
  const saved=JSON.parse(localStorage.getItem(STORE)||'null');
- if(saved&&saved.cfg)cfg={...DEFAULT,...saved.cfg};
+ if(saved&&saved.cfg){
+   cfg={...DEFAULT,...saved.cfg};
+   // Upgrade only settings that still match the previous factory defaults.
+   // User-customized values remain unchanged.
+   if((saved.defaultsVersion||2)<3){
+     const previousDefaults={pageWidth:540,pageHeight:720,pageMargin:35,fontSize:18};
+     for(const [key,oldValue] of Object.entries(previousDefaults)){
+       if(Number(saved.cfg[key])===oldValue)cfg[key]=DEFAULT[key];
+     }
+   }
+ }
  if(saved&&typeof saved.markdown==='string')markdown=saved.markdown;
  if(saved&&saved.tableWidths)tableWidths=saved.tableWidths;
  if(saved&&saved.zoom)zoom=saved.zoom;
 } catch(e){console.warn(e)}
 if(!markdown)markdown=$('editor').value;
 $('editor').value=markdown;
-function save(){try{localStorage.setItem(STORE,JSON.stringify({cfg,markdown,tableWidths,zoom}));}catch(e){console.warn(e)}}
+function save(){try{localStorage.setItem(STORE,JSON.stringify({cfg,markdown,tableWidths,zoom,defaultsVersion:3}));}catch(e){console.warn(e)}}
 function msg(s,kind){
  $('status').textContent=s;
  if(kind==='toast'){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',4000)}
 }
+function showProgress(stage,detail,mode,fraction){
+ clearTimeout(progressHideTimer);
+ const box=$('render-progress'),fill=$('render-progress-fill');
+ box.hidden=false;box.dataset.mode=mode||'indeterminate';
+ $('render-stage').textContent=stage;
+ $('render-detail').textContent=detail||'';
+ fill.style.width=mode==='determinate'?Math.min(100,Math.max(0,Number(fraction)||0))+'%':'38%';
+}
+function finishProgress(detail,serial){
+ showProgress('预览已完成',detail,'determinate',100);
+ progressHideTimer=setTimeout(()=>{if(serial===renderSerial&&!rendering)$('render-progress').hidden=true},1200);
+}
+function formatSeconds(ms){return (Math.max(0,ms)/1000).toFixed(2)+' 秒'}
 function setFields(){
  for(const k of Object.keys(DEFAULT)){
   const el=$(k);if(!el)continue;
@@ -296,6 +344,8 @@ function preprocessMath(src){
 function escapeHtml(s){return s.replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function makeHtml(){
  if(!window.marked||!window.katex)throw new Error('Markdown / KaTeX 资源未成功加载，请刷新或检查网络');
+ const key=JSON.stringify([markdown,cfg.mathDollarInline,cfg.mathDollarBlock,cfg.mathBackslashInline,cfg.mathBackslashBlock,cfg.mathCopyFix,cfg.cover,tableWidths]);
+ if(key===parsedCacheKey)return parsedCacheValue;
  const p=preprocessMath(markdown);
  let html=window.marked.parse(p.markdown,{gfm:true,breaks:false});
  html=html.replace(/<p>\s*MATHBLOCKTOKEN(\d+)\s*<\/p>/g,(m,n)=>'<div class="math-block">'+p.slots[Number(n)].html+'</div>');
@@ -316,12 +366,14 @@ function makeHtml(){
    table.insertBefore(colgroup,table.firstChild);
  });
  renderedTables=tables.length;drawTableEditor(tables);
- return wrap.innerHTML;
+ parsedCacheKey=key;
+ parsedCacheValue=wrap.innerHTML;
+ return parsedCacheValue;
 }
 function cssForPages(){
  const th=THEMES[cfg.theme]||THEMES.light,accent=cfg.accentColor||th.accent;
- const fontsize=Math.max(10,Math.min(30,+cfg.fontSize||18));
- const margin=Math.max(10,Math.min(90,+cfg.pageMargin||35));
+ const fontsize=Math.max(10,Math.min(30,+cfg.fontSize||17));
+ const margin=Math.max(10,Math.min(90,+cfg.pageMargin||30));
  const pos=cfg.pageNumber?'@bottom-right {content:counter(page) " / " counter(pages);font-size:12px;color:'+th.text+';opacity:.6}':'';
  return '@page{size:'+cfg.pageWidth+'px '+cfg.pageHeight+'px;margin:'+margin+'px;'+pos+'}'+
  '@page cover{size:'+cfg.pageWidth+'px '+cfg.pageHeight+'px;margin:0;@bottom-right{content:none}}'+
@@ -358,8 +410,22 @@ function makeDoc(bodyHtml,serial){
  '<script>window.PagedConfig={auto:false};<\/script>'+
  '<script src="https://cdn.jsdelivr.net/npm/pagedjs@0.4.3/dist/paged.polyfill.js"><\/script>'+
  '</head><body><div id="source">'+bodyHtml+'</div>'+
- '<script>(function(){var serial='+serial+';function post(kind,info){parent.postMessage({source:"rednote-pages",serial:serial,kind:kind,count:document.querySelectorAll(".pagedjs_page").length,info:info},"*")}'+
- 'window.addEventListener("load",function(){Promise.resolve(document.fonts?document.fonts.ready:null).then(function(){if(!window.PagedPolyfill||!PagedPolyfill.preview){throw new Error("Paged.js 未加载")}return PagedPolyfill.preview()}).then(function(){post("ready")}).catch(function(e){post("error",String(e))})});'+
+ '<script>(function(){'+
+ 'var serial='+serial+',completedPages=0,fontMs=0;'+
+ 'function post(kind,info){parent.postMessage({source:"rednote-pages",serial:serial,kind:kind,count:document.querySelectorAll(".pagedjs_page").length,info:info},"*")}'+
+ 'window.addEventListener("load",function(){'+
+ 'post("resources");var fontStart=performance.now();'+
+ 'Promise.resolve(document.fonts?document.fonts.ready:null).then(function(){'+
+ 'fontMs=Math.round(performance.now()-fontStart);post("fonts",{fontMs:fontMs});'+
+ 'if(!window.PagedPolyfill||!PagedPolyfill.preview){throw new Error("Paged.js 未加载")}'+
+ 'if(window.Paged&&Paged.Handler&&Paged.registerHandlers){'+
+ 'class ProgressHandler extends Paged.Handler{afterPageLayout(){completedPages+=1;post("page",{done:completedPages})}}'+
+ 'Paged.registerHandlers(ProgressHandler);'+
+ '}'+
+ 'post("paginate");var pageStart=performance.now();'+
+ 'return PagedPolyfill.preview().then(function(){post("ready",{layoutMs:Math.round(performance.now()-pageStart),fontMs:fontMs,done:completedPages})});'+
+ '}).catch(function(e){post("error",String(e))});'+
+ '});'+
  '})();<\/script></body></html>';
 }
 function drawTableEditor(tables){
@@ -533,7 +599,11 @@ window.addEventListener('resize',()=>{if(viewerOpen)fitViewer();else applyZoom()
 
 function scheduleRender(){
  if(timer)clearTimeout(timer);
- msg('排版中…');timer=setTimeout(render,450);
+ const serial=++renderSerial;
+ rendering=true;
+ showProgress('已收到修改','等待输入结束，准备更新预览…');
+ msg('等待更新…');
+ timer=setTimeout(()=>render(serial),300);
 }
 function applyZoom(){
  const frame=$('frame'),doc=frame.contentDocument;
@@ -547,19 +617,81 @@ function applyZoom(){
  }
  $('zoom-label').textContent=zoom+'%';
 }
-function render(){
- if(!window.marked||!window.katex){msg('依赖尚未加载，请检查网络');return}
- try{
-   const html=makeHtml(),serial=++renderSerial;
-   rendering=true;
-   const frame=$('frame');frame.srcdoc=makeDoc(html,serial);
-   msg('分页中…');save();
- }catch(e){rendering=false;msg('渲染失败：'+e.message);console.error(e)}
+function render(serial){
+ if(serial===undefined)serial=++renderSerial;
+ if(serial!==renderSerial)return;
+ if(!window.marked||!window.katex){
+  rendering=false;msg('渲染资源未加载');
+  showProgress('渲染资源未加载','请检查网络后刷新页面','error');
+  return;
+ }
+ renderStartedAt=performance.now();
+ rendering=true;
+ showProgress('解析 Markdown 与公式','正在处理内容与表格…');
+ // Give the browser one frame to paint the progress UI before synchronous parsing.
+ requestAnimationFrame(()=>setTimeout(()=>{
+  if(serial!==renderSerial)return;
+  try{
+   const parseStart=performance.now();
+   const content=makeHtml();
+   lastParseMs=performance.now()-parseStart;
+   showProgress('初始化排版环境','载入分页脚本与样式资源…');
+   $('frame').srcdoc=makeDoc(content,serial);
+   msg('加载排版资源…');
+   save();
+  }catch(e){
+   if(serial!==renderSerial)return;
+   rendering=false;
+   msg('渲染失败：'+e.message);
+   showProgress('渲染失败',e.message,'error');
+   console.error(e);
+  }
+ },0));
 }
 window.addEventListener('message',function(e){
  if(e.source!==$('frame').contentWindow||!e.data||e.data.source!=='rednote-pages'||e.data.serial!==renderSerial)return;
- if(e.data.kind==='ready'){rendering=false;applyZoom();attachDrags();attachViewerGestures();if(viewerOpen)updateViewer();$('pagecount').textContent='共 '+e.data.count+' 页';msg('已就绪')}
- if(e.data.kind==='error'){rendering=false;msg('分页失败');console.error(e.data.info)}
+ const info=e.data.info||{};
+ if(e.data.kind==='resources'){
+  showProgress('准备排版','脚本与样式已载入，正在检查字体…');
+  msg('检查字体…');
+ }
+ if(e.data.kind==='fonts'){
+  showProgress('字体已准备','开始计算分页布局…');
+  msg('准备分页…');
+ }
+ if(e.data.kind==='paginate'){
+  showProgress('逐页排版中','开始生成页面，最终页数尚未知…');
+  $('pagecount').textContent='分页中…';
+  msg('分页中…');
+ }
+ if(e.data.kind==='page'){
+  const done=Number(info.done)||e.data.count||0;
+  showProgress('逐页排版中','已完成 '+done+' 页 · 正在排版后续内容（总页数待定）');
+  $('pagecount').textContent='已排 '+done+' 页…';
+  msg('已排 '+done+' 页');
+ }
+ if(e.data.kind==='ready'){
+  rendering=false;
+  applyZoom();
+  attachDrags();
+  attachViewerGestures();
+  if(viewerOpen)updateViewer();
+  const count=e.data.count;
+  $('pagecount').textContent='共 '+count+' 页';
+  const total=performance.now()-renderStartedAt,layout=Number(info.layoutMs)||0;
+  const prepare=Math.max(0,total-layout-lastParseMs);
+  $('render-metrics').hidden=false;
+  $('render-metrics').textContent='本次：'+formatSeconds(total)+'（分页 '+formatSeconds(layout)+' / 准备 '+formatSeconds(prepare)+' / 解析 '+Math.round(lastParseMs)+' ms）';
+  msg('已就绪 · '+formatSeconds(total));
+  finishProgress('已生成 '+count+' 页 · '+formatSeconds(total),e.data.serial);
+ }
+ if(e.data.kind==='error'){
+  rendering=false;
+  const detail=String(info||'未知错误');
+  msg('分页失败');
+  showProgress('分页失败',detail,'error');
+  console.error(detail);
+ }
 });
 Object.keys(DEFAULT).forEach(k=>{
  const el=$(k);if(!el)return;
