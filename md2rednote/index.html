@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Markdown → 小红书 · 可调表格与公式</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;color-scheme:dark;color:#e9edf6;background:#151923}
+*{box-sizing:border-box}body{margin:0}.top{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid #343b49;background:#1d2330}
+.top h1{font-size:17px;font-weight:650;margin:0}.top small{color:#9ca7bd;font-weight:400;margin-left:12px}.top a{color:#b5c7ff;text-decoration:none;font-size:12px}
+.work{height:calc(100vh - 60px);display:grid;grid-template-columns:minmax(280px,1fr) minmax(310px,1.23fr) 285px;min-height:460px}
+.pane{min-width:0;display:flex;flex-direction:column;border-right:1px solid #343b49}.pane-head{min-height:50px;display:flex;align-items:center;justify-content:space-between;padding:10px 15px;border-bottom:1px solid #343b49;color:#dce4f4;font-size:13px;font-weight:650}
+.pane-head .sub{color:#9ca7bd;font-size:11px;font-weight:400}.toolbar{display:flex;gap:7px;align-items:center}
+button,select,input,textarea{font-family:inherit}button,.filelabel{background:#30394b;border:1px solid #526077;color:#f4f7ff;border-radius:7px;padding:7px 10px;cursor:pointer;font-size:12px;white-space:nowrap}
+button:hover,.filelabel:hover{background:#43526b}button.primary{background:#4772d8;border-color:#5881ed;font-weight:650}button.primary:hover{background:#5a81e8}
+button:disabled{opacity:.5;cursor:not-allowed}.filelabel input{display:none}
+#editor{background:#1d2330;color:#e5e9f4;width:100%;height:100%;resize:none;border:0;padding:20px 20px 80px;outline:none;font:14px/1.8 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2}
+.preview{background:#313641;flex:1;min-height:0;position:relative}iframe{display:block;width:100%;height:100%;border:0;background:#313641}
+.panel{overflow:auto;min-height:0;padding:14px 15px 40px;background:#202633}.panel h3{font-size:12px;color:#a7b6d6;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.06em}
+.panel h3:first-child{margin-top:3px}.config-line{display:flex;gap:9px;margin:9px 0}.field{flex:1;min-width:0}.field label{display:block;color:#bfcadc;font-size:11px;margin-bottom:5px}
+.field input,.field select{width:100%;min-width:0;background:#141a25;color:#e7eefd;border:1px solid #48536a;padding:7px 6px;border-radius:6px;font-size:12px}
+.field input[type=color]{height:33px;padding:3px}.check{display:flex;gap:8px;align-items:center;margin:9px 0;color:#e1e7f3;font-size:12px;cursor:pointer}
+.check input{accent-color:#739dfb}.hint{font-size:11px;line-height:1.65;color:#a1acc0;margin:8px 0 11px}.sep{border:0;border-top:1px solid #394153;margin:15px 0}
+.bar{display:flex;gap:8px;align-items:center;margin-top:11px}.bar>*{flex:1;min-width:0}.bar select{background:#141a25;color:white;border:1px solid #48536a;border-radius:6px;padding:8px}
+#status{color:#a7b6cb;font-size:11px;max-width:180px;text-align:right}#tables-info{font-size:11px;color:#c4d0e6;line-height:1.8}.mini{font-size:11px;color:#9ca7bd}
+#table-editor .table-card{background:#161d2a;padding:10px;border:1px solid #404c61;border-radius:7px;margin:7px 0}#table-editor .table-card strong{font-size:12px}
+.width-field{display:flex;align-items:center;gap:6px;margin:7px 0;font-size:11px}.width-field span{width:40px}.width-field input{flex:1;min-width:0;accent-color:#729af4}.width-field output{width:30px;text-align:right}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:20;color:white;background:#1b704d;border:1px solid #579579;border-radius:8px;padding:11px 18px;display:none;max-width:90vw;font-size:13px}
+@media(max-width:1050px){.work{grid-template-columns:minmax(250px,1fr) minmax(280px,1.2fr)}.settings{grid-column:1/-1;height:420px;border-top:1px solid #394153}.panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px;align-content:start}.panel .sep{grid-column:1/-1}}
+@media(max-width:680px){.top{padding:0 12px}.top small{display:none}.work{height:auto;display:flex;flex-direction:column}.pane{height:380px}.settings{height:auto}.panel{display:block}.top h1{font-size:14px}}
+</style>
+</head>
+<body>
+<header class="top"><h1>Markdown → 小红书 <small>自定义分页 · 表格列宽 · KaTeX 公式</small></h1><a href="https://github.com/yytdfc/md2rednote" target="_blank" rel="noopener">基于 md2rednote 的思路开发</a></header>
+<div class="work">
+<section class="pane">
+<div class="pane-head"><span>Markdown 编辑器</span><div class="toolbar"><label class="filelabel">导入 .md<input type="file" id="import-md" accept=".md,.markdown,.txt"></label><button id="reset-example">示例</button></div></div>
+<textarea id="editor" spellcheck="false" aria-label="Markdown 编辑器"># Markdown 转小红书
+
+这是支持**固定页面尺寸**、手动分页和公式的小工具。
+
+## 表格列宽可以拖动
+
+| 类型 | 功能说明 | 状态 |
+| --- | --- | --- |
+| Markdown | 自动分页、强制分页、调整页面宽高 | 已支持 |
+| 公式 | 支持美元符号与 ChatGPT 的反斜杠分隔符 | 已支持 |
+| 表格 | 在预览中的列边界拖动，更改列宽 | 已支持 |
+
+---
+
+## ChatGPT 公式示例
+
+Backbone 产生全部 Token 的 Hidden States。
+
+然后提取：
+
+- \(h_q\)：决策 Token 的 Hidden State
+- \(h_1,h_2,h_3\)：三个候选位置的 Hidden States
+
+Pointer Head 计算：
+
+\[ s_i=\frac{(W_qh_q)^\top(W_kh_i)}{\sqrt{d_p}} \]
+
+再执行：
+
+\[ P(i)=\operatorname{softmax}(s_1,s_2,s_3)\_i \]
+
+这里的 \(W_q,W_k\) 是两个可训练的线性映射。
+
+---
+
+## 美元分隔符
+
+行内公式：$E=mc^2$
+
+独立公式：
+
+$$
+\int_0^1 x^2\,dx=\frac{1}{3}
+$$
+
+上面的横线会强制从新的一张图片开始；前一页剩下的部分会自动补白。</textarea>
+</section>
+<section class="pane"><div class="pane-head"><span>分页预览 <span class="sub" id="pagecount">—</span></span><div class="toolbar"><button id="zoom-out">−</button><span class="sub" id="zoom-label">80%</span><button id="zoom-in">+</button><span id="status">载入中</span></div></div>
+<div class="preview"><iframe title="图片分页预览" id="frame"></iframe></div></section>
+<aside class="pane settings"><div class="pane-head">导出与排版配置</div><div class="panel">
+<div>
+<h3>页面尺寸</h3>
+<div class="config-line"><div class="field"><label for="pageWidth">宽度 px</label><input id="pageWidth" type="number" min="300" max="800" step="10"></div><div class="field"><label for="pageHeight">高度 px</label><input id="pageHeight" type="number" min="400" max="1000" step="10"></div><div class="field"><label for="pageMargin">边距 px</label><input id="pageMargin" type="number" min="10" max="90" step="5"></div></div>
+<div class="config-line"><div class="field"><label for="fontSize">字号 px</label><input id="fontSize" type="number" min="10" max="30"></div><div class="field"><label for="lineHeight">行高</label><input id="lineHeight" type="number" step="0.1" min="1.1" max="2.8"></div></div>
+<div class="config-line"><div class="field"><label for="theme">主题</label><select id="theme"><option value="light">浅色</option><option value="cream">象牙</option><option value="paper">纸张</option><option value="dark">暗色</option><option value="midnight">午夜</option><option value="sepia">复古</option><option value="pink">粉色</option><option value="mint">薄荷</option><option value="ocean">海洋</option><option value="lavender">薰衣草</option></select></div><div class="field"><label for="accentColor">标题/强调色</label><input id="accentColor" type="color"></div></div>
+<label class="check"><input id="cover" type="checkbox">第一个一级标题独立成封面</label>
+<label class="check"><input id="pageNumber" type="checkbox">显示页码</label>
+<label class="check"><input id="pageLines" type="checkbox">显示页面装饰线</label>
+</div>
+<div>
+<hr class="sep">
+<h3>公式分隔符 · 可分别开关</h3>
+<label class="check"><input id="mathDollarInline" type="checkbox">行内美元符号 <code>$...$</code></label>
+<label class="check"><input id="mathDollarBlock" type="checkbox">独立美元符号 <code>$$...$$</code></label>
+<label class="check"><input id="mathBackslashInline" type="checkbox">ChatGPT 行内 <code>\(...\)</code></label>
+<label class="check"><input id="mathBackslashBlock" type="checkbox">ChatGPT 独立 <code>\[...\]</code></label>
+<label class="check"><input id="mathCopyFix" type="checkbox">修复复制转义（如公式中的 <code>\_i</code>）</label>
+<p class="hint">还支持复制时出现的双反斜杠分隔符。关闭某类分隔符后，该类符号按普通 Markdown 处理。代码块和行内代码不会被解析为公式。</p>
+</div>
+<div>
+<hr class="sep">
+<h3>表格列宽</h3>
+<div id="table-editor"><span class="mini">粘贴包含表格的 Markdown 后，可在预览中拖动列分隔线。</span></div>
+<button id="reset-tables">重置全部表格列宽</button>
+<p class="hint">列宽修改会自动保存；表格拆页后沿用相同列宽。编辑表格结构后如不合适，可重置。</p>
+</div>
+<div>
+<hr class="sep">
+<h3>导出图片</h3>
+<div class="config-line"><div class="field"><label for="exportScale">分辨率倍率</label><select id="exportScale"><option value="1">1×</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option></select></div><div class="field"><label for="exportFormat">格式</label><select id="exportFormat"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select></div></div>
+<p class="hint" id="outputsize"></p>
+<button id="export" class="primary" style="width:100%">导出全部页面</button>
+<p class="hint">Chrome / Edge 支持选择保存文件夹；其他浏览器会尝试逐张下载。</p>
+<button id="reset-config">恢复默认配置</button>
+</div>
+</div></aside>
+</div>
+<div id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script id="app">
+(function(){
+'use strict';
+const STORE='md2rednote-custom-v2';
+const THEMES={
+ light:{bg:'#ffffff',text:'#303439',accent:'#c54539',code:'#f3f4f6'},
+ cream:{bg:'#fffdf3',text:'#29251f',accent:'#b86935',code:'#f5eee0'},
+ paper:{bg:'#f8f5ee',text:'#302b26',accent:'#a44e38',code:'#efe7dc'},
+ dark:{bg:'#1b1c2c',text:'#efedf5',accent:'#ff777e',code:'#303246'},
+ midnight:{bg:'#0d1521',text:'#e2ebfc',accent:'#77acff',code:'#1d293d'},
+ sepia:{bg:'#f3ead6',text:'#574835',accent:'#91532f',code:'#e8dcc5'},
+ pink:{bg:'#fff0f5',text:'#40353c',accent:'#ce518b',code:'#ffe4ec'},
+ mint:{bg:'#effdf3',text:'#2e4334',accent:'#27865c',code:'#dff5e8'},
+ ocean:{bg:'#f0f8ff',text:'#203c54',accent:'#1677af',code:'#dceaf7'},
+ lavender:{bg:'#faf5ff',text:'#483363',accent:'#8a52c5',code:'#eee3fa'}
+};
+const DEFAULT={
+ pageWidth:540,pageHeight:720,pageMargin:35,fontSize:18,lineHeight:1.65,
+ theme:'light',accentColor:'#c54539',cover:true,pageNumber:true,pageLines:false,
+ mathDollarInline:true,mathDollarBlock:true,mathBackslashInline:true,mathBackslashBlock:true,mathCopyFix:true,
+ exportScale:2,exportFormat:'png'
+};
+let cfg={...DEFAULT},tableWidths={},markdown='',zoom=80,renderSerial=0,timer=null,rendering=false,exporting=false,renderedTables=0;
+const $=(id)=>document.getElementById(id);
+try {
+ const saved=JSON.parse(localStorage.getItem(STORE)||'null');
+ if(saved&&saved.cfg)cfg={...DEFAULT,...saved.cfg};
+ if(saved&&typeof saved.markdown==='string')markdown=saved.markdown;
+ if(saved&&saved.tableWidths)tableWidths=saved.tableWidths;
+ if(saved&&saved.zoom)zoom=saved.zoom;
+} catch(e){console.warn(e)}
+if(!markdown)markdown=$('editor').value;
+$('editor').value=markdown;
+function save(){try{localStorage.setItem(STORE,JSON.stringify({cfg,markdown,tableWidths,zoom}));}catch(e){console.warn(e)}}
+function msg(s,kind){
+ $('status').textContent=s;
+ if(kind==='toast'){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',4000)}
+}
+function setFields(){
+ for(const k of Object.keys(DEFAULT)){
+  const el=$(k);if(!el)continue;
+  if(el.type==='checkbox')el.checked=!!cfg[k];else el.value=cfg[k];
+ }
+ $('zoom-label').textContent=zoom+'%';updateSize();
+}
+function updateSize(){$('outputsize').textContent='每张输出：'+Math.round(cfg.pageWidth*cfg.exportScale)+' × '+Math.round(cfg.pageHeight*cfg.exportScale)+' px'}
+function isEscaped(s,i){let n=0;for(let j=i-1;j>=0&&s[j]==='\\';j--)n++;return n%2===1}
+function preprocessMath(src){
+ const slots=[];
+ const definitions=[
+  {enabled:cfg.mathBackslashBlock,open:'\\\\[',close:'\\\\]',block:true},
+  {enabled:cfg.mathBackslashInline,open:'\\\\(',close:'\\\\)',block:false},
+  {enabled:cfg.mathBackslashBlock,open:'\\[',close:'\\]',block:true},
+  {enabled:cfg.mathBackslashInline,open:'\\(',close:'\\)',block:false},
+  {enabled:cfg.mathDollarBlock,open:'$$',close:'$$',block:true},
+  {enabled:cfg.mathDollarInline,open:'$',close:'$',block:false}
+ ];
+ let out='',i=0,fence=null,inlineTicks=0;
+ while(i<src.length){
+  if((i===0||src[i-1]==='\n')&&inlineTicks===0){
+   const end=src.indexOf('\n',i),lineEnd=end<0?src.length:end;
+   const line=src.slice(i,lineEnd);
+   const m=line.match(/^ {0,3}((?:\x60{3,})|~{3,})/);
+   if(m){
+    const token=m[1],ch=token[0];
+    if(!fence)fence={ch:ch,len:token.length};
+    else if(ch===fence.ch&&token.length>=fence.len)fence=null;
+    out+=src.slice(i,end<0?lineEnd:lineEnd+1);i=end<0?lineEnd:lineEnd+1;
+    continue;
+   }
+  }
+  if(fence){out+=src[i];i++;continue}
+  if(src.charCodeAt(i)===96){
+   let count=1;while(src.charCodeAt(i+count)===96)count++;
+   if(inlineTicks===0)inlineTicks=count;
+   else if(inlineTicks===count)inlineTicks=0;
+   out+=src.slice(i,i+count);i+=count;continue;
+  }
+  if(inlineTicks){out+=src[i];i++;continue}
+  let matched=false;
+  for(const d of definitions){
+   if(!d.enabled||!src.startsWith(d.open,i)||isEscaped(src,i))continue;
+   if(d.open==='$'&&src[i+1]==='$')continue;
+   const start=i+d.open.length;
+   if(d.open==='$'&&/\s/.test(src[start]||' '))continue;
+   let pos=src.indexOf(d.close,start);
+   while(pos>=0&&(isEscaped(src,pos)||(d.open==='$'&&src[pos+1]==='$'))){
+    pos=src.indexOf(d.close,pos+1);
+   }
+   if(pos<0)continue;
+   if(!d.block&&(src.slice(start,pos).includes('\n')||!src.slice(start,pos).trim()))continue;
+   if(d.open==='$'&&/\s/.test(src[pos-1]||' '))continue;
+   let tex=src.slice(start,pos);
+   if(cfg.mathCopyFix)tex=tex.replace(/\\_/g,'_');
+   const n=slots.length;
+   let html;
+   try{
+    html=window.katex.renderToString(tex,{displayMode:d.block,throwOnError:false,strict:'ignore',trust:false,output:'html'});
+   }catch(e){html='<span class="matherror">'+escapeHtml(tex)+'</span>'}
+   slots.push({block:d.block,html:html});
+   out+=(d.block?'\n\nMATHBLOCKTOKEN':'MATHINLINETOKEN')+n+(d.block?'\n\n':'');
+   i=pos+d.close.length;
+   matched=true;break;
+  }
+  if(!matched){out+=src[i];i++}
+ }
+ return {markdown:out,slots:slots};
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function makeHtml(){
+ if(!window.marked||!window.katex)throw new Error('Markdown / KaTeX 资源未成功加载，请刷新或检查网络');
+ const p=preprocessMath(markdown);
+ let html=window.marked.parse(p.markdown,{gfm:true,breaks:false});
+ html=html.replace(/<p>\s*MATHBLOCKTOKEN(\d+)\s*<\/p>/g,(m,n)=>'<div class="math-block">'+p.slots[Number(n)].html+'</div>');
+ html=html.replace(/MATHBLOCKTOKEN(\d+)/g,(m,n)=>'<div class="math-block">'+p.slots[Number(n)].html+'</div>');
+ html=html.replace(/MATHINLINETOKEN(\d+)/g,(m,n)=>'<span class="math-inline">'+p.slots[Number(n)].html+'</span>');
+ if(cfg.cover)html=html.replace(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i,'<section class="cover"><div class="cover-line"></div><h1>$1</h1><div class="cover-line bottom"></div></section>');
+ html=html.replace(/<hr\s*\/?>/gi,'<div class="manual-page-break"></div>');
+ const wrap=document.createElement('div');wrap.innerHTML=html;
+ const tables=wrap.querySelectorAll('table');
+ tables.forEach((table,index)=>{
+   const row=table.querySelector('tr'),count=row?row.children.length:0;
+   if(count<1)return;
+   table.dataset.tableId=String(index);
+   let widths=tableWidths[index];
+   if(!Array.isArray(widths)||widths.length!==count){widths=Array(count).fill(100/count);delete tableWidths[index]}
+   const colgroup=document.createElement('colgroup');
+   widths.forEach(w=>{const col=document.createElement('col');col.style.width=w+'%';colgroup.appendChild(col)});
+   table.insertBefore(colgroup,table.firstChild);
+ });
+ renderedTables=tables.length;drawTableEditor(tables);
+ return wrap.innerHTML;
+}
+function cssForPages(){
+ const th=THEMES[cfg.theme]||THEMES.light,accent=cfg.accentColor||th.accent;
+ const fontsize=Math.max(10,Math.min(30,+cfg.fontSize||18));
+ const margin=Math.max(10,Math.min(90,+cfg.pageMargin||35));
+ const pos=cfg.pageNumber?'@bottom-right {content:counter(page) " / " counter(pages);font-size:12px;color:'+th.text+';opacity:.6}':'';
+ return '@page{size:'+cfg.pageWidth+'px '+cfg.pageHeight+'px;margin:'+margin+'px;'+pos+'}'+
+ '@page cover{size:'+cfg.pageWidth+'px '+cfg.pageHeight+'px;margin:0;@bottom-right{content:none}}'+
+ 'body{font-family:"Noto Sans CJK SC","Microsoft YaHei","PingFang SC",sans-serif;font-size:'+fontsize+'px;line-height:'+cfg.lineHeight+';color:'+th.text+';background:#343941}'+
+ '#source{color:'+th.text+'}h1,h2,h3{color:'+accent+';break-after:avoid}h1{font-size:1.7em}h2{font-size:1.32em;margin-top:1.1em}h3{font-size:1.13em}'+
+ 'p{margin:0 0 .8em;overflow-wrap:anywhere;orphans:2;widows:2}strong,b{color:'+accent+'}ul,ol{padding-left:1.6em;margin:.6em 0}li{margin:.2em 0;break-inside:avoid}'+
+ 'blockquote{margin:.8em 0;padding:.3em .8em;border-left:3px solid '+accent+';opacity:.88;break-inside:avoid}'+
+ 'pre{background:'+th.code+';padding:12px;border-radius:7px;white-space:pre-wrap;overflow-wrap:anywhere;break-inside:avoid;font-size:.82em}'+
+ 'code{font-family:Consolas,monospace;background:'+th.code+';padding:1px 4px;border-radius:3px;font-size:.86em}pre code{background:none;padding:0}'+
+ 'a{color:'+accent+';overflow-wrap:anywhere}img{max-width:100%;height:auto}'+
+ 'table{border-collapse:collapse;table-layout:fixed;width:100%;margin:.8em 0;font-size:.84em}th,td{border:1px solid '+accent+'70;padding:7px 8px;overflow-wrap:anywhere;word-break:break-word;vertical-align:middle}'+
+ 'th{background:'+th.code+';position:relative}td{position:relative}.col-grip{position:absolute;right:-6px;top:0;bottom:0;width:12px;z-index:100;cursor:col-resize;touch-action:none;display:flex;align-items:center;justify-content:center}'+
+ '.col-grip:after{content:"";width:3px;height:55%;background:'+accent+';opacity:.4;border-radius:5px}.col-grip:hover:after{opacity:1;width:4px}'+
+ '.manual-page-break{break-after:page;page-break-after:always;height:0}'+
+ '.math-inline{white-space:nowrap}.math-block{display:block;text-align:center;margin:1.3em 0;break-inside:avoid;overflow:visible}.katex-display{margin:0;overflow:visible}'+
+ '.cover{page:cover;break-after:page;position:relative;height:'+cfg.pageHeight+'px;display:flex;align-items:center;justify-content:center;padding:'+margin+'px}'+
+ '.cover h1{font-size:'+(fontsize*2.6)+'px;text-align:center;line-height:1.4;word-break:break-word;margin:0;color:'+accent+'}'+
+ '.cover-line{position:absolute;top:10%;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,'+accent+',transparent)}'+
+ '.cover-line.bottom{top:90%}'+
+ '.pagedjs_pages{display:flex;flex-wrap:wrap;gap:22px;align-content:flex-start;justify-content:flex-start;padding:20px 12px 120px}'+
+ '.pagedjs_page{flex-shrink:0;background:'+th.bg+';box-shadow:0 4px 14px #15151570}'+
+ (cfg.pageLines?'.pagedjs_pagebox:before,.pagedjs_pagebox:after{content:"";position:absolute;left:'+margin+'px;right:'+margin+'px;height:1px;background:'+accent+'50}.pagedjs_pagebox:before{top:'+Math.round(margin*.65)+'px}.pagedjs_pagebox:after{bottom:'+margin+'px}':'');
+}
+function makeDoc(bodyHtml,serial){
+ const th=THEMES[cfg.theme]||THEMES.light;
+ return '<!doctype html><html><head><meta charset="utf-8">'+
+ '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">'+
+ '<style>'+cssForPages()+'</style>'+
+ '<style>.pagedjs_page{background:'+th.bg+'!important}.pagedjs_pagebox{background:'+th.bg+'}html{background:#313641}</style>'+
+ '<script>window.PagedConfig={auto:false};<\/script>'+
+ '<script src="https://cdn.jsdelivr.net/npm/pagedjs@0.4.3/dist/paged.polyfill.js"><\/script>'+
+ '</head><body><div id="source">'+bodyHtml+'</div>'+
+ '<script>(function(){var serial='+serial+';function post(kind,info){parent.postMessage({source:"rednote-pages",serial:serial,kind:kind,count:document.querySelectorAll(".pagedjs_page").length,info:info},"*")}'+
+ 'window.addEventListener("load",function(){Promise.resolve(document.fonts?document.fonts.ready:null).then(function(){if(!window.PagedPolyfill||!PagedPolyfill.preview){throw new Error("Paged.js 未加载")}return PagedPolyfill.preview()}).then(function(){post("ready")}).catch(function(e){post("error",String(e))})});'+
+ '})();<\/script></body></html>';
+}
+function drawTableEditor(tables){
+ const parent=$('table-editor');parent.innerHTML='';
+ if(!tables.length){parent.textContent='当前没有表格';return}
+ tables.forEach((table,i)=>{
+  const first=table.querySelector('tr'),n=first?first.children.length:0;
+  if(n<2)return;
+  const vals=tableWidths[i]&&tableWidths[i].length===n?tableWidths[i]:Array(n).fill(100/n);
+  const card=document.createElement('div');card.className='table-card';
+  const title=document.createElement('strong');title.textContent='表格 '+(i+1)+'（'+n+'列）';card.appendChild(title);
+  for(let j=0;j<n;j++){
+   const line=document.createElement('div');line.className='width-field';
+   const label=document.createElement('span');label.textContent='第'+(j+1)+'列';
+   const input=document.createElement('input');input.type='range';input.min=8;input.max=92;input.step=1;input.value=vals[j].toFixed(0);input.disabled=j===n-1;
+   const out=document.createElement('output');out.textContent=Math.round(vals[j])+'%';
+   input.addEventListener('change',()=>{
+    const old=tableWidths[i]&&tableWidths[i].length===n?tableWidths[i].slice():Array(n).fill(100/n);
+    const pair=adjustPair(old,j,Number(input.value)-old[j]);tableWidths[i]=pair;save();scheduleRender();
+   });
+   line.append(label,input,out);card.appendChild(line);
+  }
+  parent.appendChild(card);
+ });
+}
+function adjustPair(widths,j,delta){
+ const a=widths.slice();if(j<0||j>=a.length-1)return a;
+ delta=Math.max(8-a[j],Math.min(a[j+1]-8,delta));
+ a[j]=a[j]+delta;a[j+1]=a[j+1]-delta;return a;
+}
+function attachDrags(){
+ const doc=$('frame').contentDocument;if(!doc)return;
+ doc.querySelectorAll('.pagedjs_page table[data-table-id]').forEach(table=>{
+  const tr=table.querySelector('tr');if(!tr)return;
+  const cells=[...tr.children],id=Number(table.dataset.tableId),n=cells.length;
+  for(let j=0;j<n-1;j++){
+   const cell=cells[j];if(cell.querySelector('.col-grip'))continue;
+   const grip=doc.createElement('span');grip.className='col-grip';grip.title='拖动调整第'+(j+1)+'列宽度';
+   grip.setAttribute('aria-label','拖动调整列宽');
+   cell.appendChild(grip);
+   grip.addEventListener('pointerdown',function(event){
+    if(rendering||exporting)return;
+    event.preventDefault();event.stopPropagation();
+    const start=event.clientX;
+    const old=tableWidths[id]&&tableWidths[id].length===n?tableWidths[id].slice():Array(n).fill(100/n);
+    const actualWidth=table.getBoundingClientRect().width||1;
+    const onMove=function(e){
+     const delta=(e.clientX-start)/actualWidth*100;
+     const next=adjustPair(old,j,delta);
+     doc.querySelectorAll('.pagedjs_page table[data-table-id="'+id+'"]').forEach(other=>{
+      const cols=other.querySelectorAll('colgroup col');
+      next.forEach((v,k)=>{if(cols[k])cols[k].style.width=v+'%'});
+     });
+     tableWidths[id]=next;
+    };
+    const onEnd=function(e){
+     onMove(e);doc.removeEventListener('pointermove',onMove);doc.removeEventListener('pointerup',onEnd);
+     save();scheduleRender();
+    };
+    doc.addEventListener('pointermove',onMove);doc.addEventListener('pointerup',onEnd,{once:true});
+   });
+  }
+ });
+}
+function scheduleRender(){
+ if(timer)clearTimeout(timer);
+ msg('排版中…');timer=setTimeout(render,450);
+}
+function applyZoom(){
+ const doc=$('frame').contentDocument;
+ if(doc){const pages=doc.querySelector('.pagedjs_pages');if(pages)pages.style.zoom=String(zoom/100)}
+ $('zoom-label').textContent=zoom+'%';
+}
+function render(){
+ if(!window.marked||!window.katex){msg('依赖尚未加载，请检查网络');return}
+ try{
+   const html=makeHtml(),serial=++renderSerial;
+   rendering=true;
+   const frame=$('frame');frame.srcdoc=makeDoc(html,serial);
+   msg('分页中…');save();
+ }catch(e){rendering=false;msg('渲染失败：'+e.message);console.error(e)}
+}
+window.addEventListener('message',function(e){
+ if(e.source!==$('frame').contentWindow||!e.data||e.data.source!=='rednote-pages'||e.data.serial!==renderSerial)return;
+ if(e.data.kind==='ready'){rendering=false;applyZoom();attachDrags();$('pagecount').textContent='共 '+e.data.count+' 页';msg('已就绪')}
+ if(e.data.kind==='error'){rendering=false;msg('分页失败');console.error(e.data.info)}
+});
+Object.keys(DEFAULT).forEach(k=>{
+ const el=$(k);if(!el)return;
+ el.addEventListener('input',function(){
+  if(el.type==='checkbox')cfg[k]=el.checked;
+  else if(el.type==='number')cfg[k]=Number(el.value);
+  else cfg[k]=el.value;
+  if(k==='theme')cfg.accentColor=THEMES[cfg.theme].accent;
+  if(k==='exportScale'||k==='exportFormat'){updateSize();save();return}
+  setFields();save();scheduleRender();
+ });
+});
+$('editor').addEventListener('input',()=>{markdown=$('editor').value;save();scheduleRender()});
+$('zoom-out').addEventListener('click',()=>{zoom=Math.max(30,zoom-10);save();applyZoom()});
+$('zoom-in').addEventListener('click',()=>{zoom=Math.min(150,zoom+10);save();applyZoom()});
+$('reset-config').addEventListener('click',()=>{cfg={...DEFAULT};setFields();save();scheduleRender()});
+$('reset-tables').addEventListener('click',()=>{tableWidths={};save();scheduleRender()});
+$('reset-example').addEventListener('click',()=>{if(!confirm('用示例内容替换当前编辑内容？'))return;localStorage.removeItem(STORE);location.reload()});
+$('import-md').addEventListener('change',async(e)=>{
+ const f=e.target.files&&e.target.files[0];if(!f)return;
+ markdown=await f.text();$('editor').value=markdown;tableWidths={};save();scheduleRender();
+});
+async function exportPages(){
+ if(exporting||rendering)return;
+ const doc=$('frame').contentDocument;
+ if(!doc||!window.html2canvas){msg('导出组件未加载');return}
+ const pages=[...doc.querySelectorAll('.pagedjs_page')];
+ if(!pages.length){msg('没有可导出的页面');return}
+ exporting=true;$('export').disabled=true;
+ const pageWrapper=doc.querySelector('.pagedjs_pages'),oldZoom=pageWrapper? pageWrapper.style.zoom:'';
+ if(pageWrapper)pageWrapper.style.zoom='1';
+ let folder=null;try{if(window.showDirectoryPicker)folder=await window.showDirectoryPicker({mode:'readwrite'})}catch(e){if(e.name==='AbortError'){finish();return}console.warn(e)}
+ const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+ try{
+  const mime='image/'+cfg.exportFormat,ext=cfg.exportFormat==='jpeg'?'jpg':cfg.exportFormat;
+  for(let i=0;i<pages.length;i++){
+   msg('导出 '+(i+1)+' / '+pages.length);
+   const canvas=await html2canvas(pages[i],{scale:Number(cfg.exportScale),backgroundColor:(THEMES[cfg.theme]||THEMES.light).bg,useCORS:true,logging:false,ignoreElements:el=>el.classList&&el.classList.contains('col-grip')});
+   const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('图片编码失败')),mime,.94));
+   const fileName='page-'+String(i+1).padStart(2,'0')+'.'+ext;
+   if(folder){const handle=await folder.getFileHandle(fileName,{create:true}),writer=await handle.createWritable();await writer.write(blob);await writer.close()}
+   else{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=fileName;a.click();setTimeout(()=>URL.revokeObjectURL(url),20000)}
+  }
+  msg('成功导出 '+pages.length+' 张图片','toast');
+ }catch(e){console.error(e);msg('导出失败：'+e.message)}
+ finally{finish()}
+ function finish(){if(pageWrapper)pageWrapper.style.zoom=oldZoom;exporting=false;$('export').disabled=false;if($('status').textContent.startsWith('导出'))msg('已就绪')}
+}
+$('export').addEventListener('click',exportPages);
+setFields();save();render();
+})();
+</script>
+</body></html>
