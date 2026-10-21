@@ -787,6 +787,58 @@ Object.keys(DEFAULT).forEach(k=>{
   setFields();save();scheduleRender();
  });
 });
+
+function richHtmlToMarkdown(input){
+ if(typeof window.TurndownService!=='function')throw new Error('Turndown not loaded');
+ const doc=new DOMParser().parseFromString(input,'text/html');
+ const saved=[];
+ doc.querySelectorAll('annotation[encoding="application/x-tex"]').forEach(el=>{
+  const root=el.closest('.katex,.MathJax,math');
+  const tex=el.textContent.trim();
+  if(!root||!tex)return;
+  const holder=root.closest('.katex-display,.math-block')||root;
+  if(!holder.isConnected)return;
+  const tag='LATEXPASTE'+saved.length+'END';
+  saved.push({tag:tag,tex:tex,display:holder!==root});
+  holder.replaceWith(doc.createTextNode(tag));
+ });
+ doc.querySelectorAll('script,style,iframe,object,embed,svg,form').forEach(el=>el.remove());
+ const converter=new TurndownService({headingStyle:'atx',bulletListMarker:'-',codeBlockStyle:'fenced',strongDelimiter:'**'});
+ if(window.turndownPluginGfm&&window.turndownPluginGfm.gfm)converter.use(window.turndownPluginGfm.gfm);
+ converter.addRule('tables',{
+  filter:'table',
+  replacement:function(value,table){
+   const rows=Array.from(table.querySelectorAll('tr')).filter(row=>row.closest('table')===table);
+   if(!rows.length)return '';
+   const grid=rows.map(row=>Array.from(row.children).filter(el=>el.tagName==='TD'||el.tagName==='TH').map(cell=>converter.turndown(cell.innerHTML).trim().replace(/\s*\n+\s*/g,' ').replace(/\|/g,'\\|')));
+   const columns=Math.max(1,...grid.map(row=>row.length));
+   const line=row=>'| '+Array.from({length:columns},(_,j)=>row[j]||'').join(' | ')+' |';
+   return '\n\n'+line(grid[0])+'\n| '+Array(columns).fill('---').join(' | ')+' |\n'+grid.slice(1).map(line).join('\n')+'\n\n';
+  }
+ });
+ let result=converter.turndown(doc.body).trim();
+ for(const f of saved){
+  const begin=f.display?'\\[':'\\(';
+  const end=f.display?'\\]':'\\)';
+  result=result.split(f.tag).join(begin+f.tex+end);
+ }
+ return result;
+}
+$('editor').addEventListener('paste',function(e){
+ if(!cfg.richPaste||!e.clipboardData)return;
+ const rich=e.clipboardData.getData('text/html');
+ if(!rich||!/<(?:p|div|h[1-6]|b|strong|i|em|a|table|ul|ol|li|pre|code|blockquote|img)\b/i.test(rich))return;
+ try{
+  const value=richHtmlToMarkdown(rich);
+  if(!value)return;
+  e.preventDefault();
+  const el=$('editor');
+  el.setRangeText(value,el.selectionStart,el.selectionEnd,'end');
+  markdown=el.value;save();scheduleRender();
+  msg('已转换富文本为 Markdown','toast');
+ }catch(err){console.warn('Rich paste unavailable, using default paste',err)}
+});
+
 $('editor').addEventListener('input',()=>{markdown=$('editor').value;save();scheduleRender()});
 $('zoom-out').addEventListener('click',()=>{zoom=Math.max(30,zoom-10);save();applyZoom()});
 $('zoom-in').addEventListener('click',()=>{zoom=Math.min(150,zoom+10);save();applyZoom()});
