@@ -47,6 +47,47 @@ button:disabled{opacity:.5;cursor:not-allowed}.filelabel input{display:none}
 @media(prefers-reduced-motion:reduce){.render-progress-fill{animation:none!important}}
 </style>
 
+
+<style id="release-styles">
+.header-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;min-width:0}
+.header-actions a{color:#b5c7ff;text-decoration:none;font-size:11px;white-space:nowrap}
+.header-actions a:hover{text-decoration:underline}
+#updates-header-btn{border:1px solid #56637c;background:#28364f;padding:7px 9px;flex-shrink:0}
+.version-chip{font-size:10px;opacity:.72;margin-left:3px}
+.work>.release-pane{display:none!important;background:#202633}
+.work>.release-pane.release-open{display:flex!important;position:fixed;right:0;top:60px;bottom:0;height:auto;width:min(495px,96vw);z-index:95;box-shadow:-18px 0 38px rgba(0,0,0,.52);border-left:1px solid #53627e}
+.release-pane .pane-head{flex-shrink:0}
+.release-version{font-size:11px;color:#a9bce0;margin-left:8px}
+.release-scroll{overflow-y:auto;min-height:0;flex:1;padding:16px 19px 60px;line-height:1.65}
+.release-scroll a{color:#9dbbff;overflow-wrap:anywhere}
+.release-intro{font-size:12px;color:#d1daeb;background:#293448;padding:11px 13px;border-radius:8px;margin:0 0 16px}
+.release-section-title{font-size:14px;color:#c6d9ff;margin:20px 0 12px}
+.release-entry{margin:10px 0;padding:14px;border-radius:10px;border:1px solid #43516b;background:#1b2332}
+.release-entry-top{display:flex;align-items:center;justify-content:space-between;color:#9bafd2;font-size:11px}
+.release-entry h4{font-size:14px;margin:7px 0;color:#f0f4fb}
+.release-entry p{font-size:12px;color:#c3cfdf;margin:8px 0;line-height:1.65}
+.release-new,.release-base{display:inline-block;margin-top:7px;color:#c2d7ff;font-size:11px}
+.release-base{color:#abbed6}
+.release-footnote{font-size:11px;line-height:1.6;color:#9bb0c9;margin-top:18px}
+@media(max-width:680px){
+ .top{height:82px;min-height:82px;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:5px;padding:6px 10px}
+ .top h1{font-size:14px}
+ .header-actions{justify-content:space-between;flex-direction:row-reverse;gap:7px}
+ .header-actions a{display:block;white-space:normal;flex:1;min-width:0;text-align:left;font-size:9px;line-height:1.35;max-width:none}
+ #updates-header-btn{font-size:11px;padding:4px 7px}
+ .version-chip{display:none}
+ .work{height:calc(100dvh - 82px - 62px - env(safe-area-inset-bottom))}
+ .work>.release-pane{display:none!important}
+ .work>.release-pane.mobile-active{display:flex!important;position:relative;top:auto;right:auto;width:100%;height:100%;box-shadow:none;border-left:0}
+ .work>.release-pane .release-scroll{padding-bottom:100px}
+ .mobile-tabs button{font-size:11px;white-space:nowrap}
+}
+@media(max-width:360px){
+ .top{height:86px;min-height:86px}
+ .work{height:calc(100dvh - 86px - 62px - env(safe-area-inset-bottom))}
+ .mobile-tabs button{font-size:10px}
+}
+</style>
 <style id="mobile-viewer-styles">
 .mobile-tabs,.viewer-nav{display:none}
 .preview-pane.is-fullscreen{position:fixed!important;inset:0;z-index:1000;display:flex!important;flex-direction:column;width:100%;height:100dvh;min-height:0;background:#181e2a;border:0}
@@ -95,7 +136,9 @@ body.viewer-open{overflow:hidden}
 </style>
 </head>
 <body>
-<header class="top"><h1>Markdown → 小红书 <small>自定义分页 · 表格列宽 · KaTeX 公式</small></h1><a href="https://github.com/yytdfc/md2rednote" target="_blank" rel="noopener" title="独立实现，参考开源项目 md2rednote（作者 yytdfc）">由ChatGPT独立实现 · 参考开源项目 md2rednote（作者 yytdfc）</a></header>
+<header class="top"><h1>Markdown → 小红书 <small>自定义分页 · 表格列宽 · KaTeX 公式</small></h1>
+<div class="header-actions"><button type="button" id="updates-header-btn" aria-controls="updates-pane" aria-expanded="false">更新日志 <span class="version-chip">v1.4</span></button>
+<a href="https://github.com/yytdfc/md2rednote" target="_blank" rel="noopener" title="本工具由 ChatGPT 独立实现，参考开源项目 md2rednote（作者 yytdfc），并非直接修改原项目源码">由YuQiao的ChatGPT独立实现 · 参考yytdfc的开源项目 md2rednote</a></div></header>
 <div class="work">
 <section class="pane" data-pane="editor">
 <div class="pane-head"><span>Markdown 编辑器</span><div class="toolbar"><label class="filelabel">导入 .md<input type="file" id="import-md" accept=".md,.markdown,.txt"></label><button id="reset-example">示例</button></div></div>
@@ -179,6 +222,10 @@ $$
 <label class="check"><input id="mathBackslashBlock" type="checkbox">ChatGPT 独立 <code>\[...\]</code></label>
 <label class="check"><input id="mathCopyFix" type="checkbox">修复复制转义（如公式中的 <code>\_i</code>）</label>
 <p class="hint">还支持复制时出现的双反斜杠分隔符。关闭某类分隔符后，该类符号按普通 Markdown 处理。代码块和行内代码不会被解析为公式。</p>
+<hr class="sep">
+<h3>粘贴选项</h3>
+<label class="check"><input id="richPaste" type="checkbox">粘贴富文本时自动转换为 Markdown</label>
+<p class="hint">默认开启。网页、Word、ChatGPT 等富文本尽可能保留标题、加粗、列表、链接、代码、表格。普通纯文本或 Markdown 不会自动改写。外部图片需要可访问的 URL；复杂格式建议检查转换效果。</p>
 </div>
 <div>
 <hr class="sep">
@@ -197,14 +244,33 @@ $$
 <button id="reset-config">恢复默认配置</button>
 </div>
 </div></aside>
+
+<aside class="pane release-pane" id="updates-pane" data-pane="updates" aria-label="更新日志">
+ <div class="pane-head"><span>更新日志 <span class="release-version">v1.4 · 2026-10-21</span></span><button id="updates-close-btn" type="button">✕ 关闭</button></div>
+ <div class="release-scroll">
+  <p class="release-intro">本工具由 <strong>YuQiao 的 ChatGPT 独立实现</strong>，参考 <a href="https://github.com/yytdfc/md2rednote" target="_blank" rel="noopener">yytdfc 的开源项目 md2rednote</a>。并非直接在该项目源码上修改，也不是其 Fork。</p>
+  <h3 class="release-section-title">我们的版本更新</h3>
+  <article class="release-entry"><div class="release-entry-top"><time>2026-10-21</time><b>v1.4</b></div><h4>富文本转换与更新日志</h4><p>新增粘贴 HTML 富文本自动转 Markdown（可开关）；支持常见标题、列表、链接、代码块及表格。新增独立更新日志、来源说明和版本记录。</p><span class="release-new">相对原项目新增</span></article>
+  <article class="release-entry"><div class="release-entry-top"><time>2026-10-20</time><b>v1.3</b></div><h4>渲染进度和速度优化</h4><p>增加解析、字体准备、逐页分页进度，展示实际耗时；缓存解析结果、缩短输入防抖。默认字号 17、宽 450、高 750、边距 30。</p><span class="release-new">相对原项目新增：逐阶段进度与耗时</span></article>
+  <article class="release-entry"><div class="release-entry-top"><time>2026-10-20</time><b>v1.2</b></div><h4>手机端分屏与全屏看图</h4><p>独立切换 Markdown、分页预览和设置；全屏单页浏览、左右滑动翻页。</p><span class="release-new">相对原项目新增</span></article>
+  <article class="release-entry"><div class="release-entry-top"><time>2026-10-20</time><b>v1.1</b></div><h4>数学公式、表格列宽</h4><p>KaTeX 数学公式渲染，四种公式分隔符独立开关，兼容 ChatGPT 的反斜杠写法；增加表格列宽拖动与百分比调整。</p><span class="release-new">相对原项目新增</span></article>
+  <article class="release-entry"><div class="release-entry-top"><time>2026-10-20</time><b>v1.0</b></div><h4>Markdown 转图片独立实现</h4><p>参考原项目的固定页面尺寸、自动分页、手动分页、主题和图片导出的思路，重新实现网页工具并部署到 GitHub Pages。</p><span class="release-base">参考原项目已有能力</span></article>
+  <h3 class="release-section-title">哪些是原项目已有功能？</h3>
+  <p class="release-intro">原项目已有 Markdown 分页、通过横线强制分页、自定义图片宽高、主题、封面、页码及 PNG/JPEG/WebP 图片导出。本工具不将这些说成独创，也不保证完全复刻原项目的每项设置。</p>
+  <p class="release-footnote">差异基于 2026-10-21 对 <a href="https://github.com/yytdfc/md2rednote" target="_blank" rel="noopener">原项目 main 分支</a> 的 README 和源码核对；原项目后续可能更新。</p>
+ </div>
+</aside>
 </div>
 <nav class="mobile-tabs" aria-label="手机端内容切换">
 <button type="button" data-target="editor">✎ Markdown</button>
 <button type="button" data-target="preview" class="active" aria-current="page">▣ 分页预览</button>
 <button type="button" data-target="settings">⚙ 设置</button>
+<button type="button" data-target="updates">◷ 更新</button>
 </nav>
 <div id="toast" role="status"></div>
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.0/turndown.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/turndown-plugin-gfm@1.0.2/dist/turndown-plugin-gfm.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script id="app">
@@ -227,6 +293,7 @@ const DEFAULT={
  pageWidth:450,pageHeight:750,pageMargin:30,fontSize:17,lineHeight:1.65,
  theme:'light',accentColor:'#c54539',cover:true,pageNumber:true,pageLines:false,
  mathDollarInline:true,mathDollarBlock:true,mathBackslashInline:true,mathBackslashBlock:true,mathCopyFix:true,
+ richPaste:true,
  exportScale:2,exportFormat:'png'
 };
 let cfg={...DEFAULT},tableWidths={},markdown='',zoom=80,renderSerial=0,timer=null,rendering=false,exporting=false,renderedTables=0;
@@ -493,7 +560,7 @@ function attachDrags(){
 
 function isMobile(){return window.matchMedia('(max-width: 680px)').matches}
 function switchTab(name){
- if(!['editor','preview','settings'].includes(name))return;
+ if(!['editor','preview','settings','updates'].includes(name))return;
  activeTab=name;
  document.querySelectorAll('.work>[data-pane]').forEach(pane=>pane.classList.toggle('mobile-active',pane.dataset.pane===name));
  document.querySelectorAll('.mobile-tabs [data-target]').forEach(button=>{
@@ -502,6 +569,22 @@ function switchTab(name){
  });
  if(name==='preview')requestAnimationFrame(applyZoom);
 }
+
+function closeUpdates(){
+ $('updates-pane').classList.remove('release-open');
+ $('updates-header-btn').setAttribute('aria-expanded','false');
+ if(isMobile()&&activeTab==='updates')switchTab('preview');
+}
+$('updates-header-btn').addEventListener('click',()=>{
+ if(isMobile()){switchTab('updates');return}
+ const panel=$('updates-pane');
+ const isOpen=panel.classList.toggle('release-open');
+ $('updates-header-btn').setAttribute('aria-expanded',String(isOpen));
+});
+$('updates-close-btn').addEventListener('click',closeUpdates);
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&$('updates-pane').classList.contains('release-open'))closeUpdates();
+});
 function getPages(){
  const doc=$('frame').contentDocument;return doc?[...doc.querySelectorAll('.pagedjs_page')]:[];
 }
