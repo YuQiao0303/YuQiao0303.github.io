@@ -137,7 +137,7 @@ body.viewer-open{overflow:hidden}
 </head>
 <body>
 <header class="top"><h1>Markdown → 小红书 <small>自定义分页 · 表格列宽 · KaTeX 公式</small></h1>
-<div class="header-actions"><button type="button" id="updates-header-btn" aria-controls="updates-pane" aria-expanded="false">更新日志 <span class="version-chip">v1.6</span></button>
+<div class="header-actions"><button type="button" id="updates-header-btn" aria-controls="updates-pane" aria-expanded="false">更新日志 <span class="version-chip">v1.7</span></button>
 <a href="https://github.com/yytdfc/md2rednote" target="_blank" rel="noopener" title="本工具由 ChatGPT 独立实现，参考开源项目 md2rednote（作者 yytdfc），并非直接修改原项目源码">由YuQiao的ChatGPT独立实现 · 参考yytdfc的开源项目 md2rednote</a></div></header>
 <div class="work">
 <section class="pane" data-pane="editor">
@@ -213,6 +213,8 @@ $$
 <p class="hint">默认开启：一次 Enter 换行，两次 Enter 空一行，三次空两行，依此类推。段落附加间距默认 0 行，设置为 0.5 就额外增加半行（跟随字号与行高）。关闭可恢复标准 Markdown 的空行合并规则。代码块原样保留。</p>
 <div class="config-line"><div class="field"><label for="theme">主题</label><select id="theme"><option value="light">浅色</option><option value="cream">象牙</option><option value="paper">纸张</option><option value="dark">暗色</option><option value="midnight">午夜</option><option value="sepia">复古</option><option value="pink">粉色</option><option value="mint">薄荷</option><option value="ocean">海洋</option><option value="lavender">薰衣草</option></select></div><div class="field"><label for="accentColor">标题/强调色</label><input id="accentColor" type="color"></div></div>
 <label class="check"><input id="cover" type="checkbox">第一个一级标题独立成封面</label>
+<div class="config-line" id="coverSizeSetting"><div class="field"><label for="coverFontSize">封面标题字号（px）</label><input id="coverFontSize" type="number" min="24" max="80" step="1"></div></div>
+<p class="hint">只调整封面标题，正文 H1/H2/H3 继续根据正文字号自动缩放，不增加复杂选项。</p>
 <label class="check"><input id="pageNumber" type="checkbox">显示页码</label>
 <label class="check"><input id="pageLines" type="checkbox">显示页面装饰线</label>
 </div>
@@ -249,10 +251,11 @@ $$
 </div></aside>
 
 <aside class="pane release-pane" id="updates-pane" data-pane="updates" aria-label="更新日志">
- <div class="pane-head"><span>更新日志 <span class="release-version">v1.6 · 2026-10-21</span></span><button id="updates-close-btn" type="button">✕ 关闭</button></div>
+ <div class="pane-head"><span>更新日志 <span class="release-version">v1.7 · 2026-10-21</span></span><button id="updates-close-btn" type="button">✕ 关闭</button></div>
  <div class="release-scroll">
   <p class="release-intro">本工具由 <strong>YuQiao 的 ChatGPT 独立实现</strong>，参考 <a href="https://github.com/yytdfc/md2rednote" target="_blank" rel="noopener">yytdfc 的开源项目 md2rednote</a>。并非直接在该项目源码上修改，也不是其 Fork。</p>
   <h3 class="release-section-title">我们的版本更新</h3>
+  <article class="release-entry"><div class="release-entry-top"><time>2026-10-21</time><b>v1.7</b></div><h4>封面字号与复古主题</h4><p>默认边距改为 40px，默认主题改为「复古」，同步复古主题的强调色。新增封面标题字号（默认 44px），正文标题依旧自动按比例缩放。尽量保留此前主动调整过的设置。</p><span class="release-new">相对原项目新增：极简封面字号设置</span></article>
   <article class="release-entry"><div class="release-entry-top"><time>2026-10-21</time><b>v1.6</b></div><h4>按回车数保留空行</h4><p>新增纯文本式的逐次换行模式（默认开启）：连续按 Enter 可累加空行，不再被 Markdown 合并。将段落附加间距调整为行高倍数，默认 0 行，避免与手动空行重复。关闭后仍可使用标准 Markdown 行为。</p><span class="release-new">相对原项目新增</span></article>
   <article class="release-entry"><div class="release-entry-top"><time>2026-10-21</time><b>v1.5</b></div><h4>段落间距与换行规则</h4><p>新增可调段落间距（0–60px，默认14px），预览和导出统一生效。可选开启单次 Enter 换行；连续两次 Enter 仍按 Markdown 生成新段落。</p><span class="release-new">相对原项目新增：可调段落间距与换行设置</span></article>
   <article class="release-entry"><div class="release-entry-top"><time>2026-10-21</time><b>v1.4</b></div><h4>富文本转换与更新日志</h4><p>新增粘贴 HTML 富文本自动转 Markdown（可开关）；支持常见标题、列表、链接、代码块及表格。新增独立更新日志、来源说明和版本记录。</p><span class="release-new">相对原项目新增</span></article>
@@ -295,8 +298,8 @@ const THEMES={
  lavender:{bg:'#faf5ff',text:'#483363',accent:'#8a52c5',code:'#eee3fa'}
 };
 const DEFAULT={
- pageWidth:450,pageHeight:750,pageMargin:30,fontSize:17,lineHeight:1.65,paragraphGapLines:0,preserveLineBreaks:true,
- theme:'light',accentColor:'#c54539',cover:true,pageNumber:true,pageLines:false,
+ pageWidth:450,pageHeight:750,pageMargin:40,fontSize:17,lineHeight:1.65,paragraphGapLines:0,preserveLineBreaks:true,coverFontSize:44,
+ theme:'sepia',accentColor:'#91532f',cover:true,pageNumber:true,pageLines:false,
  mathDollarInline:true,mathDollarBlock:true,mathBackslashInline:true,mathBackslashBlock:true,mathCopyFix:true,
  richPaste:true,
  exportScale:2,exportFormat:'png'
@@ -310,6 +313,18 @@ try {
  const saved=JSON.parse(localStorage.getItem(STORE)||'null');
  if(saved&&saved.cfg){
    cfg={...DEFAULT,...saved.cfg};
+   // Existing users used a 2.6x cover/body ratio; preserve it until they adjust the cover.
+   if(saved.cfg.coverFontSize===undefined){
+     const prevFont=Number(saved.cfg.fontSize)||DEFAULT.fontSize;
+     cfg.coverFontSize=Math.max(24,Math.min(80,Math.round(prevFont*2.6)));
+   }
+   // Migrate the previous unmodified factory defaults, not deliberate custom values.
+   if((saved.defaultsVersion||3)<4){
+     if(Number(saved.cfg.pageMargin)===30)cfg.pageMargin=40;
+     if(saved.cfg.theme==='light'&&(!saved.cfg.accentColor||saved.cfg.accentColor==='#c54539')){
+       cfg.theme=DEFAULT.theme;cfg.accentColor=DEFAULT.accentColor;
+     }
+   }
    if(saved.cfg.paragraphGapLines===undefined && Number(saved.cfg.paragraphSpacing)!==14 && Number.isFinite(Number(saved.cfg.paragraphSpacing))){
      const base=Math.max(12,(Number(saved.cfg.fontSize)||17)*(Number(saved.cfg.lineHeight)||1.65));
      cfg.paragraphGapLines=Math.max(0,Math.min(4,Math.round((Number(saved.cfg.paragraphSpacing)/base)*4)/4));
@@ -329,7 +344,7 @@ try {
 } catch(e){console.warn(e)}
 if(!markdown)markdown=$('editor').value;
 $('editor').value=markdown;
-function save(){try{localStorage.setItem(STORE,JSON.stringify({cfg,markdown,tableWidths,zoom,defaultsVersion:3}));}catch(e){console.warn(e)}}
+function save(){try{localStorage.setItem(STORE,JSON.stringify({cfg,markdown,tableWidths,zoom,defaultsVersion:4}));}catch(e){console.warn(e)}}
 function msg(s,kind){
  $('status').textContent=s;
  if(kind==='toast'){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',4000)}
@@ -352,6 +367,8 @@ function setFields(){
   const el=$(k);if(!el)continue;
   if(el.type==='checkbox')el.checked=!!cfg[k];else el.value=cfg[k];
  }
+ const coverSizeRow=$('coverSizeSetting');
+ if(coverSizeRow)coverSizeRow.style.display=cfg.cover?'flex':'none';
  $('zoom-label').textContent=zoom+'%';updateSize();
 }
 function updateSize(){$('outputsize').textContent='每张输出：'+Math.round(cfg.pageWidth*cfg.exportScale)+' × '+Math.round(cfg.pageHeight*cfg.exportScale)+' px'}
@@ -519,7 +536,7 @@ function makeHtml(){
 function cssForPages(){
  const th=THEMES[cfg.theme]||THEMES.light,accent=cfg.accentColor||th.accent;
  const fontsize=Math.max(10,Math.min(30,+cfg.fontSize||17));
- const margin=Math.max(10,Math.min(90,+cfg.pageMargin||30));
+ const margin=Math.max(10,Math.min(90,+cfg.pageMargin||40));
  const gapLines=Math.max(0,Math.min(4,Number.isFinite(Number(cfg.paragraphGapLines))?Number(cfg.paragraphGapLines):0));
  const paragraphGap=(gapLines*Math.max(1.1,Math.min(2.8,+cfg.lineHeight||1.65))).toFixed(3);
  const pos=cfg.pageNumber?'@bottom-right {content:counter(page) " / " counter(pages);font-size:12px;color:'+th.text+';opacity:.6}':'';
@@ -538,7 +555,7 @@ function cssForPages(){
  '.manual-page-break{break-after:page;page-break-after:always;height:0}'+
  '.math-inline{white-space:nowrap}.math-block{display:block;text-align:center;margin:1.3em 0;break-inside:avoid;overflow:visible}.katex-display{margin:0;overflow:visible}'+
  '.cover{page:cover;break-after:page;position:relative;height:'+cfg.pageHeight+'px;display:flex;align-items:center;justify-content:center;padding:'+margin+'px}'+
- '.cover h1{font-size:'+(fontsize*2.6)+'px;text-align:center;line-height:1.4;word-break:break-word;margin:0;color:'+accent+'}'+
+ '.cover h1{font-size:'+Math.max(24,Math.min(80,Number(cfg.coverFontSize)||44))+'px;text-align:center;line-height:1.4;word-break:break-word;margin:0;color:'+accent+'}'+
  '.cover-line{position:absolute;top:10%;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,'+accent+',transparent)}'+
  '.cover-line.bottom{top:90%}'+
  '.pagedjs_pages{display:flex;flex-wrap:wrap;gap:22px;align-content:flex-start;justify-content:flex-start;padding:20px 12px 120px}'+
