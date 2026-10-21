@@ -137,7 +137,7 @@ body.viewer-open{overflow:hidden}
 </head>
 <body>
 <header class="top"><h1>Markdown → 小红书 <small>自定义分页 · 表格列宽 · KaTeX 公式</small></h1>
-<div class="header-actions"><button type="button" id="updates-header-btn" aria-controls="updates-pane" aria-expanded="false">更新日志 <span class="version-chip">v1.5</span></button>
+<div class="header-actions"><button type="button" id="updates-header-btn" aria-controls="updates-pane" aria-expanded="false">更新日志 <span class="version-chip">v1.6</span></button>
 <a href="https://github.com/yytdfc/md2rednote" target="_blank" rel="noopener" title="本工具由 ChatGPT 独立实现，参考开源项目 md2rednote（作者 yytdfc），并非直接修改原项目源码">由YuQiao的ChatGPT独立实现 · 参考yytdfc的开源项目 md2rednote</a></div></header>
 <div class="work">
 <section class="pane" data-pane="editor">
@@ -208,8 +208,9 @@ $$
 <h3>页面尺寸</h3>
 <div class="config-line"><div class="field"><label for="pageWidth">宽度 px</label><input id="pageWidth" type="number" min="300" max="800" step="10"></div><div class="field"><label for="pageHeight">高度 px</label><input id="pageHeight" type="number" min="400" max="1000" step="10"></div><div class="field"><label for="pageMargin">边距 px</label><input id="pageMargin" type="number" min="10" max="90" step="5"></div></div>
 <div class="config-line"><div class="field"><label for="fontSize">字号 px</label><input id="fontSize" type="number" min="10" max="30"></div><div class="field"><label for="lineHeight">行高</label><input id="lineHeight" type="number" step="0.1" min="1.1" max="2.8"></div></div>
-<div class="config-line"><div class="field"><label for="paragraphSpacing">段落间距 px</label><input id="paragraphSpacing" type="number" min="0" max="60" step="1"></div><div class="field" style="flex:1.6"><label>换行规则</label><label class="check" title="打开后，单次 Enter 生成换行，但不会新建段落" style="margin:0;min-height:33px"><input id="singleEnterBreak" type="checkbox">单次 Enter 换行</label></div></div>
-<p class="hint">连续两次 Enter 会创建新段落，段落间距由这里控制。开启单次 Enter 换行后，一次 Enter 只换行、不增加段落间距；表格和代码块按各自规则处理。</p>
+<div class="config-line"><div class="field"><label for="paragraphGapLines">段落附加间距（行）</label><input id="paragraphGapLines" type="number" min="0" max="4" step="0.25"></div></div>
+<label class="check"><input id="preserveLineBreaks" type="checkbox">按回车次数保留换行及连续空行</label>
+<p class="hint">默认开启：一次 Enter 换行，两次 Enter 空一行，三次空两行，依此类推。段落附加间距默认 0 行，设置为 0.5 就额外增加半行（跟随字号与行高）。关闭可恢复标准 Markdown 的空行合并规则。代码块原样保留。</p>
 <div class="config-line"><div class="field"><label for="theme">主题</label><select id="theme"><option value="light">浅色</option><option value="cream">象牙</option><option value="paper">纸张</option><option value="dark">暗色</option><option value="midnight">午夜</option><option value="sepia">复古</option><option value="pink">粉色</option><option value="mint">薄荷</option><option value="ocean">海洋</option><option value="lavender">薰衣草</option></select></div><div class="field"><label for="accentColor">标题/强调色</label><input id="accentColor" type="color"></div></div>
 <label class="check"><input id="cover" type="checkbox">第一个一级标题独立成封面</label>
 <label class="check"><input id="pageNumber" type="checkbox">显示页码</label>
@@ -248,10 +249,11 @@ $$
 </div></aside>
 
 <aside class="pane release-pane" id="updates-pane" data-pane="updates" aria-label="更新日志">
- <div class="pane-head"><span>更新日志 <span class="release-version">v1.5 · 2026-10-21</span></span><button id="updates-close-btn" type="button">✕ 关闭</button></div>
+ <div class="pane-head"><span>更新日志 <span class="release-version">v1.6 · 2026-10-21</span></span><button id="updates-close-btn" type="button">✕ 关闭</button></div>
  <div class="release-scroll">
   <p class="release-intro">本工具由 <strong>YuQiao 的 ChatGPT 独立实现</strong>，参考 <a href="https://github.com/yytdfc/md2rednote" target="_blank" rel="noopener">yytdfc 的开源项目 md2rednote</a>。并非直接在该项目源码上修改，也不是其 Fork。</p>
   <h3 class="release-section-title">我们的版本更新</h3>
+  <article class="release-entry"><div class="release-entry-top"><time>2026-10-21</time><b>v1.6</b></div><h4>按回车数保留空行</h4><p>新增纯文本式的逐次换行模式（默认开启）：连续按 Enter 可累加空行，不再被 Markdown 合并。将段落附加间距调整为行高倍数，默认 0 行，避免与手动空行重复。关闭后仍可使用标准 Markdown 行为。</p><span class="release-new">相对原项目新增</span></article>
   <article class="release-entry"><div class="release-entry-top"><time>2026-10-21</time><b>v1.5</b></div><h4>段落间距与换行规则</h4><p>新增可调段落间距（0–60px，默认14px），预览和导出统一生效。可选开启单次 Enter 换行；连续两次 Enter 仍按 Markdown 生成新段落。</p><span class="release-new">相对原项目新增：可调段落间距与换行设置</span></article>
   <article class="release-entry"><div class="release-entry-top"><time>2026-10-21</time><b>v1.4</b></div><h4>富文本转换与更新日志</h4><p>新增粘贴 HTML 富文本自动转 Markdown（可开关）；支持常见标题、列表、链接、代码块及表格。新增独立更新日志、来源说明和版本记录。</p><span class="release-new">相对原项目新增</span></article>
   <article class="release-entry"><div class="release-entry-top"><time>2026-10-20</time><b>v1.3</b></div><h4>渲染进度和速度优化</h4><p>增加解析、字体准备、逐页分页进度，展示实际耗时；缓存解析结果、缩短输入防抖。默认字号 17、宽 450、高 750、边距 30。</p><span class="release-new">相对原项目新增：逐阶段进度与耗时</span></article>
@@ -293,7 +295,7 @@ const THEMES={
  lavender:{bg:'#faf5ff',text:'#483363',accent:'#8a52c5',code:'#eee3fa'}
 };
 const DEFAULT={
- pageWidth:450,pageHeight:750,pageMargin:30,fontSize:17,lineHeight:1.65,paragraphSpacing:14,singleEnterBreak:false,
+ pageWidth:450,pageHeight:750,pageMargin:30,fontSize:17,lineHeight:1.65,paragraphGapLines:0,preserveLineBreaks:true,
  theme:'light',accentColor:'#c54539',cover:true,pageNumber:true,pageLines:false,
  mathDollarInline:true,mathDollarBlock:true,mathBackslashInline:true,mathBackslashBlock:true,mathCopyFix:true,
  richPaste:true,
@@ -308,6 +310,10 @@ try {
  const saved=JSON.parse(localStorage.getItem(STORE)||'null');
  if(saved&&saved.cfg){
    cfg={...DEFAULT,...saved.cfg};
+   if(saved.cfg.paragraphGapLines===undefined && Number(saved.cfg.paragraphSpacing)!==14 && Number.isFinite(Number(saved.cfg.paragraphSpacing))){
+     const base=Math.max(12,(Number(saved.cfg.fontSize)||17)*(Number(saved.cfg.lineHeight)||1.65));
+     cfg.paragraphGapLines=Math.max(0,Math.min(4,Math.round((Number(saved.cfg.paragraphSpacing)/base)*4)/4));
+   }
    // Upgrade only settings that still match the previous factory defaults.
    // User-customized values remain unchanged.
    if((saved.defaultsVersion||2)<3){
@@ -412,12 +418,82 @@ function preprocessMath(src){
  return {markdown:out,slots:slots};
 }
 function escapeHtml(s){return s.replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+/**
+ * Preserve the number of intentional line breaks outside verbatim blocks.
+ * Markdown normally collapses all sequences of blank lines into one paragraph gap.
+ * A stable spacer is inserted for each blank text row, measured in line heights.
+ * Code fences, HTML <pre>, and multiline display math are left untouched.
+ */
+function preserveEmptyLineRuns(input){
+ if(!cfg.preserveLineBreaks)return input;
+ let src=input.replace(/\r\n?/g,'\n');
+ if(!src)return src;
+ const lh=Math.max(1.1,Math.min(2.8,Number(cfg.lineHeight)||1.65));
+ const spacer=count=>'<div class="md-empty-lines" aria-hidden="true" style="height:'+(count*lh).toFixed(3)+'em"></div>';
+ if(/^[ \t\n]+$/.test(src)){
+  return spacer((src.match(/\n/g)||[]).length)+'\n';
+ }
+ let leadingRows=0,trailingRows=0;
+ const leading=src.match(/^(?:[ \t]*\n)+/);
+ if(leading){leadingRows=(leading[0].match(/\n/g)||[]).length;src=src.slice(leading[0].length)}
+ const trailing=src.match(/(?:\n[ \t]*)+$/);
+ if(trailing){trailingRows=(trailing[0].match(/\n/g)||[]).length;src=src.slice(0,-trailing[0].length)}
+ const protectedRanges=[];
+ let active=null,offset=0;
+ const lines=src.split('\n');
+ for(let i=0;i<lines.length;i++){
+  const line=lines[i],nextOffset=offset+line.length+(i<lines.length-1?1:0);
+  const trimmed=line.trim();
+  if(active){
+   let closing=false;
+   if(active.kind==='fence'){
+    const m=line.match(/^ {0,3}(\x60{3,}|~{3,})[ \t]*$/);
+    closing=!!m&&m[1][0]===active.char&&m[1].length>=active.length;
+   }else if(active.kind==='pre'){
+    closing=/<\/pre\s*>/i.test(line);
+   }else if(active.kind==='math'){
+    closing=trimmed.includes(active.closing);
+   }
+   if(closing){protectedRanges.push([active.start,nextOffset]);active=null}
+  }else{
+   const fence=line.match(/^ {0,3}(\x60{3,}|~{3,})/);
+   if(fence){active={kind:'fence',start:offset,char:fence[1][0],length:fence[1].length}}
+   else if(/<pre(?:\s|>)/i.test(line)&&!/<\/pre\s*>/i.test(line)){
+    active={kind:'pre',start:offset};
+   }else if((trimmed.startsWith('$$')&&!trimmed.slice(2).includes('$$'))||(trimmed.startsWith('\\[')&&!trimmed.slice(3).includes('\\]'))||(trimmed.startsWith('\[')&&!trimmed.slice(2).includes('\]'))){
+    active={kind:'math',start:offset,closing:trimmed.startsWith('$$')?'$$':trimmed.startsWith('\\[')?'\\]':'\]'};
+   }
+  }
+  offset=nextOffset;
+ }
+ if(active)protectedRanges.push([active.start,src.length]);
+ function protectedAt(start,end){
+  return protectedRanges.some(range=>start>=range[0]&&end<=range[1]);
+ }
+ let output=src.replace(/\n(?:[ \t]*\n)+/g,(run,pos)=>{
+  if(protectedAt(pos,pos+run.length))return run;
+  const linesToAdd=(run.match(/\n/g)||[]).length-1;
+  const previous=src.slice(src.lastIndexOf('\n',pos-1)+1,pos);
+  const nextLineEnd=src.indexOf('\n',pos+run.length);
+  const following=src.slice(pos+run.length,nextLineEnd>=0?nextLineEnd:undefined);
+  const a=previous.match(/^(\s*)(?:[-+*]|\d+[.)])\s+/);
+  const b=following.match(/^(\s*)(?:[-+*]|\d+[.)])\s+/);
+  // Keep adjacent list items in a single Markdown list.
+  const indent=a&&b&&a[1]===b[1]?' '.repeat(a[0].length):'';
+  return '\n\n'+indent+spacer(linesToAdd)+'\n\n';
+ });
+ if(leadingRows)output=spacer(leadingRows)+'\n\n'+output;
+ if(trailingRows)output=output+'\n\n'+spacer(trailingRows);
+ return output;
+}
+
 function makeHtml(){
  if(!window.marked||!window.katex)throw new Error('Markdown / KaTeX 资源未成功加载，请刷新或检查网络');
- const key=JSON.stringify([markdown,cfg.mathDollarInline,cfg.mathDollarBlock,cfg.mathBackslashInline,cfg.mathBackslashBlock,cfg.mathCopyFix,cfg.cover,cfg.singleEnterBreak,tableWidths]);
+ const key=JSON.stringify([markdown,cfg.mathDollarInline,cfg.mathDollarBlock,cfg.mathBackslashInline,cfg.mathBackslashBlock,cfg.mathCopyFix,cfg.cover,cfg.preserveLineBreaks,cfg.lineHeight,tableWidths]);
  if(key===parsedCacheKey)return parsedCacheValue;
- const p=preprocessMath(markdown);
- let html=window.marked.parse(p.markdown,{gfm:true,breaks:!!cfg.singleEnterBreak});
+ const p=preprocessMath(preserveEmptyLineRuns(markdown));
+ let html=window.marked.parse(p.markdown,{gfm:true,breaks:!!cfg.preserveLineBreaks});
  html=html.replace(/<p>\s*MATHBLOCKTOKEN(\d+)\s*<\/p>/g,(m,n)=>'<div class="math-block">'+p.slots[Number(n)].html+'</div>');
  html=html.replace(/MATHBLOCKTOKEN(\d+)/g,(m,n)=>'<div class="math-block">'+p.slots[Number(n)].html+'</div>');
  html=html.replace(/MATHINLINETOKEN(\d+)/g,(m,n)=>'<span class="math-inline">'+p.slots[Number(n)].html+'</span>');
@@ -444,13 +520,14 @@ function cssForPages(){
  const th=THEMES[cfg.theme]||THEMES.light,accent=cfg.accentColor||th.accent;
  const fontsize=Math.max(10,Math.min(30,+cfg.fontSize||17));
  const margin=Math.max(10,Math.min(90,+cfg.pageMargin||30));
- const paragraphSpacing=Math.max(0,Math.min(60,Number.isFinite(Number(cfg.paragraphSpacing))?Number(cfg.paragraphSpacing):14));
+ const gapLines=Math.max(0,Math.min(4,Number.isFinite(Number(cfg.paragraphGapLines))?Number(cfg.paragraphGapLines):0));
+ const paragraphGap=(gapLines*Math.max(1.1,Math.min(2.8,+cfg.lineHeight||1.65))).toFixed(3);
  const pos=cfg.pageNumber?'@bottom-right {content:counter(page) " / " counter(pages);font-size:12px;color:'+th.text+';opacity:.6}':'';
  return '@page{size:'+cfg.pageWidth+'px '+cfg.pageHeight+'px;margin:'+margin+'px;'+pos+'}'+
  '@page cover{size:'+cfg.pageWidth+'px '+cfg.pageHeight+'px;margin:0;@bottom-right{content:none}}'+
  'body{font-family:"Noto Sans CJK SC","Microsoft YaHei","PingFang SC",sans-serif;font-size:'+fontsize+'px;line-height:'+cfg.lineHeight+';color:'+th.text+';background:#343941}'+
  '#source{color:'+th.text+'}h1,h2,h3{color:'+accent+';break-after:avoid}h1{font-size:1.7em}h2{font-size:1.32em;margin-top:1.1em}h3{font-size:1.13em}'+
- 'p{margin:0 0 '+paragraphSpacing+'px;overflow-wrap:anywhere;orphans:2;widows:2}strong,b{color:'+accent+'}ul,ol{padding-left:1.6em;margin:.6em 0}li{margin:.2em 0;break-inside:avoid}'+
+ 'p{margin:0 0 '+paragraphGap+'em;overflow-wrap:anywhere;orphans:2;widows:2}strong,b{color:'+accent+'}ul,ol{padding-left:1.6em;margin:.6em 0}li{margin:.2em 0;break-inside:avoid}'+
  'blockquote{margin:.8em 0;padding:.3em .8em;border-left:3px solid '+accent+';opacity:.88;break-inside:avoid}'+
  'pre{background:'+th.code+';padding:12px;border-radius:7px;white-space:pre-wrap;overflow-wrap:anywhere;break-inside:avoid;font-size:.82em}'+
  'code{font-family:Consolas,monospace;background:'+th.code+';padding:1px 4px;border-radius:3px;font-size:.86em}pre code{background:none;padding:0}'+
@@ -466,6 +543,7 @@ function cssForPages(){
  '.cover-line.bottom{top:90%}'+
  '.pagedjs_pages{display:flex;flex-wrap:wrap;gap:22px;align-content:flex-start;justify-content:flex-start;padding:20px 12px 120px}'+
  '.pagedjs_page{flex-shrink:0;background:'+th.bg+';box-shadow:0 4px 14px #15151570}'+
+ (cfg.preserveLineBreaks?'h1,h2,h3,ul,ol,blockquote,pre,table,li{margin-top:0;margin-bottom:0}.md-empty-lines{display:block;margin:0;padding:0;border:0;min-height:0;break-inside:auto}':'')+
  (cfg.pageLines?'.pagedjs_pagebox:before,.pagedjs_pagebox:after{content:"";position:absolute;left:'+margin+'px;right:'+margin+'px;height:1px;background:'+accent+'50}.pagedjs_pagebox:before{top:'+Math.round(margin*.65)+'px}.pagedjs_pagebox:after{bottom:'+margin+'px}':'');
 }
 function makeDoc(bodyHtml,serial){
